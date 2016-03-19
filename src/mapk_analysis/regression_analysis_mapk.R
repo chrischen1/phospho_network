@@ -11,6 +11,7 @@
 # 4. mutation_filename is info about mutations on each cell lines
 
 library(glmnet)
+library(methods)
 
 # Set parameters
 script_dir        = '~/Documents/workspace/phospho_network/script_files'
@@ -43,7 +44,7 @@ data_prepare <- function(site_id,msdata,totdata,network,prot_interact = prot_int
   protein_name <- msdata[site_id,"merge_id"]
   gene_name <- msdata[site_id,'gene_symbol']
   site_list <- strsplit(msdata[site_id,'Site.Position'],split = ';')[[1]]
-  all_predictors_genes <- names(network[network[,gene_name] > 0,gene_name])
+  all_predictors_genes <- rownames(network)[network[,gene_name] > 0]
   all_predictors_data  <- msdata[msdata$gene_symbol %in% all_predictors_genes,]
   if(nrow(all_predictors_data) < 1){
     return(NULL)
@@ -177,7 +178,7 @@ cal_q2 <- function(true,pred){
 # Main body
 msdata_raw      <- read.csv(paste(script_dir,msdata_filename,sep = '/'),header = T,as.is = T)
 totdata         <- read.csv(paste(script_dir,tot_prt_filename,sep = '/'),header = T,as.is = T)
-network         <- as.matrix(read.csv(paste(network_dir,network_filename,sep = '/'),row.names = 1))
+network         <- read.csv(paste(network_dir,network_filename,sep = '/'),row.names = 1)
 mutation_matrix <- read.csv(paste(script_dir,mutation_filename,sep = '/'),header = T,as.is = T,row.names = 1)
 prot_interact   <- read.csv(paste(network_dir,prot_table_file,sep = '/'),as.is = T)
 gene_interact   <- read.csv(paste(network_dir,gene_table_file,sep = '/'),as.is = T)
@@ -185,7 +186,7 @@ msdata          <- msdata_raw[msdata_raw$gene_symbol %in% rownames(network) & ms
 unique_id       <- paste(msdata$acc_id,msdata$Site.Position,sep = '_')
 gene_list       <- msdata$gene_symbol
 rownames(msdata) <- unique_id
-
+colnames(network) <- rownames(network)
 
 result_matrix <- matrix(0,ncol = 7,nrow = 0)
 outerq_matrix <- matrix(0,ncol = 3,nrow = 0)

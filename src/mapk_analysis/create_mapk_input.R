@@ -33,6 +33,7 @@ all_mapk     <- all_table[all_table$geneB %in% mapk_genes,]
 all_mapk2    <- all_mapk[all_mapk$geneA != all_mapk$geneB,]
 g_mapk       <- graph_from_edgelist(as.matrix(all_mapk2))
 mapk_matrix  <- as.matrix(as_adjacency_matrix(g_mapk))
+rownames(mapk_matrix) <- colnames(mapk_matrix)
 
 prot_table2     <- cbind(prot_table,'site' = rep('',nrow(prot_table)))
 prot_info_mapk  <- rbind(site_table[site_table$geneB %in% mapk_genes,],prot_table2[prot_table2$geneB %in% mapk_genes,])

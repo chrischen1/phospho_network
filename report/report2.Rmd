@@ -8,9 +8,9 @@ output: html_document
 Merge information from KEGG and all other data sources
 
 ```{r pressure, echo=FALSE,fig.width=9}
-  beta      <- read.csv('~/Documents/workspace/phospho_network/script_files/analysis_results/mapk_merge/beta_matrix.csv',as.is = T)
-  result    <- read.csv('~/Documents/workspace/phospho_network/script_files/analysis_results/mapk_merge/result_matrix.csv',as.is = T)
-  q2        <- read.csv('~/Documents/workspace/phospho_network/script_files/analysis_results/mapk_merge/outer_q2.csv',as.is = T)
+  beta      <- read.csv('~/Documents/workspace/phospho_network/script_files/analysis_results/mapk/beta_matrix.csv',as.is = T)
+  result    <- read.csv('~/Documents/workspace/phospho_network/script_files/analysis_results/mapk/result_matrix.csv',as.is = T)
+  q2        <- read.csv('~/Documents/workspace/phospho_network/script_files/analysis_results/mapk/outer_q2.csv',as.is = T)
   
   site_ids  <- unique(result$siteid)
   par(mfrow = c(1,2))
