@@ -68,6 +68,22 @@ cartesian_product <- function(x,y,ref_list){
   return(xy_table)
 }
 
+expand_matrix <- function(m,ncol,sep = ';'){
+  m2 <- m[0,]
+  for(i in 1:nrow(m)){
+    var_split <- strsplit(m[i,ncol],split = ';')[[1]]
+    if(length(var_split) <= 1){
+      m2 <- rbind(m2,m[i,])
+    }else if(length(var_split) > 1){
+      new_table <- matrix(rep(as.character(m[i,]),length(var_split)),nrow = length(var_split),byrow = T)
+      new_table[,ncol] <- var_split
+      colnames(new_table) <- colnames(m2)
+      m2 <- rbind(m2,new_table)
+    }
+  }
+  return(m2)
+}
+
 # Main body
 # Create table for interactions
 interaction_table_site <- matrix(0,ncol=5,nrow = 0)
@@ -129,7 +145,9 @@ if(kegg_table_file != ''){
   output_network2 <- unique(rbind(output_network2,kegg_table2[,colnames(output_network2)]))
 }
 
-write.csv(interaction_table_site,paste(interactions_path,output_file_site,sep = '/'),row.names = F)
+interaction_table_site2 <- unique(expand_matrix(interaction_table_site,ncol = which(colnames(interaction_table_site)=='site')))
+
+write.csv(interaction_table_site2,paste(interactions_path,output_file_site,sep = '/'),row.names = F)
 write.csv(interaction_table_prot,paste(interactions_path,output_file_prot,sep = '/'),row.names = F)
 write.csv(interaction_table_gene,paste(interactions_path,output_file_gene,sep = '/'),row.names = F)
 write.csv(output_network2,paste(interactions_path,output_file_network,sep = '/'),row.names = F)

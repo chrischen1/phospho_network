@@ -1,78 +1,81 @@
-# This Rscript would take a processed MS data file(data_processing.R) as input, and do the following steps:
-# 1.Import the MS data and network file(as an adjacency matrix) from csv files
-# 2.Filter the data by keeping only proteins in the network 
-# 3.Nodes 1 level further upstream could also be treated as predictors, but a penalty factor would be imposed
-# 4.Construct the LASSO model: PeptideA_site1 ~ PeptideA_site1 + PeptideA_site2...
-# 5.Evaluate the model with r-square and q-square
-# input files:
-# 1. msdata_filename tot_prt_filename are processed MS data for phos or total protein
-# 2. network_filename: network for mapk pathway as adj matrix for literal including kegg
-# 3. prot_table_file gene_table_file addtional info for protein/site interactions or gene interactions
-# 4. mutation_filename is info about mutations on each cell lines
+# TCPA validation
+# data parser and analysis
 
 library(glmnet)
 library(methods)
+library(igraph)
 
-# Set parameters
-script_dir        = '~/Documents/workspace/phospho_network/script_files'
-results_dir       = '~/Documents/workspace/phospho_network/script_files/analysis_results/mapk_merge'
-network_dir       = '~/Documents/workspace/phospho_network/script_files/mapk_analysis'
+tcpa_data_file        = '~/Documents/workspace/phospho_network/processed_data/tcpa/tcpa_data_processed.csv'
+interaction_site_file = '~/Documents/workspace/phospho_network/script_files/interaction_data_processed/interaction_table_site_all.csv'
+interaction_gene_file = '~/Documents/workspace/phospho_network/script_files/interaction_data_processed/network_all_gene.csv'
+results_dir           = '~/Documents/workspace/phospho_network/script_files/analysis_rppa'
+result_outfiles       = c('result_matrix.csv','outer_q2.csv','beta_matrix.csv')
 
-
-msdata_filename   = 'msdata_processed.csv'
-tot_prt_filename  = 'total_protein_processed.csv'
-network_filename  = 'mapk_network_literal.csv'
-prot_table_file   = 'mapk_prot_table.csv'
-gene_table_file   = 'mapk_gene_table.csv'
-mutation_filename = 'mutation_matrix.csv'
-alphas            = seq(0,1,0.05)
-lambdas           = c()
-indirect_predictor= 0             #Indirect predictor included? 0 for no; 1 for 1 level upper; 2 for all possible ones
-
+data_col <- -(1:3)
 penalty_site      = 0.01
 penalty_prot      = 1
 penalty_gene      = 2
-result_outfiles   = c('result_matrix.csv','outer_q2.csv','beta_matrix.csv')
 
-# Internal parameters
-cell_col          = 11:20
-total_cell_col    = 9:18
-num_test          = 1 #number of test sets for outer loop
 
-# Functions:
-# given a site_id, return a list with list$x are the predictors, and list$y are true responses
-data_prepare <- function(site_id,msdata,totdata,network,prot_interact = prot_interact, gene_interact = gene_interact,cell_col=cell_col,
-                         total_cell_col=total_cell_col,mutation_matrix = mutation_matrix,penalty_site= 0.01,penalty_prot= 1,penalty_gene= 2){
+expand_matrix <- function(m,ncol,sep = '; '){
+  m2 <- m[0,]
+  for(i in 1:nrow(m)){
+    var_split <- strsplit(m[i,ncol],split = sep)[[1]]
+    if(length(var_split) <= 1){
+      m2 <- rbind(m2,m[i,])
+    }else if(length(var_split) > 1){
+      new_table <- matrix(rep(as.character(m[i,]),length(var_split)),nrow = length(var_split),byrow = T)
+      new_table[,ncol] <- var_split
+      colnames(new_table) <- colnames(m2)
+      m2 <- rbind(m2,new_table)
+    }
+  }
+  return(m2)
+}
+
+data_prepare <- function(site_id,msdata,totdata,network,prot_interact = prot_interact, gene_interact = NULL,
+                         data_col=data_col,total_data_col=data_col,mutation_matrix = NULL,penalty_site= 0.01,penalty_prot= 1,penalty_gene= 2,penalty_noevd = 3){
   data_model <- list(x=c(),y=c())
-  protein_name <- msdata[site_id,"merge_id"]
-  gene_name <- msdata[site_id,'gene_symbol']
-  site_list <- strsplit(msdata[site_id,'Site.Position'],split = ';')[[1]]
+  gene_name <- strsplit(site_id,split = '_')[[1]][1]
+  site_list <- strsplit(msdata[site_id,'site'],split = ';')[[1]]
   all_predictors_genes <- rownames(network)[network[,gene_name] > 0]
   all_predictors_data  <- msdata[msdata$gene_symbol %in% all_predictors_genes,]
   if(nrow(all_predictors_data) < 1){
     return(NULL)
   }else{
-    relate_evidence <- prot_interact[prot_interact$protB == protein_name,]
-    site_evidence   <- relate_evidence[relate_evidence$site %in% site_list,'protA']
-    prot_evidence   <- relate_evidence[!(prot_interact$site[prot_interact$protB == protein_name] %in% site_list),'protA']
-    gene_evidence   <- gene_interact[gene_interact$geneA == gene_name | gene_interact$geneB == protein_name,]
-    if(nrow(gene_evidence) > 0){
-      gene_evidence  <- unlist(gene_evidence[gene_evidence != gene_name])
+    penalty_vector  <- rep(penalty_noevd,nrow(all_predictors_data))
+
+    if(!is.null(prot_interact)){
+      relate_evidence <- prot_interact[prot_interact$geneB == gene_name,]
+      prot_evidence   <- relate_evidence[!(prot_interact$site[prot_interact$geneB == gene_name] %in% site_list),'geneA']
+      site_evidence   <- relate_evidence[relate_evidence$site %in% site_list,'geneA']
+      penalty_vector[which(all_predictors_data$gene_symbol %in% prot_evidence)]     <- penalty_prot
+      penalty_vector[which(all_predictors_data$gene_symbol %in% site_evidence)]     <- penalty_site
     }
-    penalty_vector  <- rep(3,nrow(all_predictors_data))
-    penalty_vector[which(all_predictors_data$gene_symbol %in% gene_evidence)]  <- penalty_gene
-    penalty_vector[which(all_predictors_data$merge_id %in% prot_evidence)]     <- penalty_prot
-    penalty_vector[which(all_predictors_data$merge_id %in% site_evidence)]     <- penalty_site
-    tot_protein <- as.numeric(totdata[totdata$acc_id == strsplit(site_id,split = '_')[[1]][1],total_cell_col])
-    data_model$x <- t(rbind(all_predictors_data[,cell_col],'tot_protein' = tot_protein, 'mutation' = as.numeric(mutation_matrix[gene_name,])))
-    data_model$y <- as.numeric(msdata[site_id,cell_col])
-    data_model$penalty <- c(penalty_vector,1,1)
+    if (!is.null(gene_interact)){
+      gene_evidence   <- gene_interact[gene_interact$geneB == gene_name,]
+      if(nrow(gene_evidence) > 0){
+        gene_evidence  <- unlist(gene_evidence[gene_evidence != gene_name])
+        penalty_vector[which(all_predictors_data$gene_symbol %in% gene_evidence)]  <- penalty_gene
+      }
+    }
+    x <- t(all_predictors_data[,data_col])
+    if(gene_name %in% totdata$gene_symbol){
+      tot_protein <- as.numeric(totdata[totdata[,'gene_symbol'] == gene_name,total_data_col])
+      x <- cbind(x,'tot_protein' = tot_protein)
+      penalty_vector <- c(penalty_vector,1)
+    }
+    if(!is.null(mutation_matrix)){
+      x <- cbind(x,'mutation' = as.numeric(mutation_matrix[gene_name,]))
+      penalty_vector <- c(penalty_vector,1)
+    }
+    data_model$x <- x
+    data_model$y <- as.numeric(msdata[site_id,data_col])
+    data_model$penalty <- penalty_vector
   }
   return (data_model)
 }
 
-# Nested cross validation: alpha and lambda are vectors for grid search, if lambda is set to NULL, it would train alpha only and let glmnet to decide lambda
-# inner loop would use a leave-1-out CV, outer loop would have ntest for test set.
 nestcv <- function(model_data,alphas,lambdas,ntest = num_test){
   cell_line_list <- rownames(model_data$x)
   penalty <- model_data$penalty
@@ -178,33 +181,31 @@ cal_q2 <- function(true,pred){
   return(1 - sum((pred-true)^2)/sum((true-mean(true))^2))
 }
 
-# Main body
-msdata_raw      <- read.csv(paste(script_dir,msdata_filename,sep = '/'),header = T,as.is = T)
-totdata         <- read.csv(paste(script_dir,tot_prt_filename,sep = '/'),header = T,as.is = T)
-network         <- read.csv(paste(network_dir,network_filename,sep = '/'),row.names = 1)
-mutation_matrix <- read.csv(paste(script_dir,mutation_filename,sep = '/'),header = T,as.is = T,row.names = 1)
-prot_interact   <- read.csv(paste(network_dir,prot_table_file,sep = '/'),as.is = T)
-gene_interact   <- read.csv(paste(network_dir,gene_table_file,sep = '/'),as.is = T)
-msdata          <- msdata_raw[msdata_raw$gene_symbol %in% rownames(network) & msdata_raw$merge_id %in% totdata$merge_id,]
-unique_id       <- paste(msdata$acc_id,msdata$Site.Position,sep = '_')
-gene_list       <- msdata$gene_symbol
-rownames(msdata) <- unique_id
-colnames(network) <- rownames(network)
+# main body
+tcpa_data_raw <- read.csv(tcpa_data_file,as.is = T,header = T)
+interaction_site_raw <- read.csv(interaction_site_file,as.is = T)
+interaction_gene_raw <- read.csv(interaction_gene_file,as.is = T)
 
-result_matrix <- matrix(0,ncol = 7,nrow = 0)
-outerq_matrix <- matrix(0,ncol = 3,nrow = 0)
-beta_matrix   <- matrix(0,ncol=length(cell_col)+3,nrow = 0)
+tcpa_data     <- expand_matrix(tcpa_data_raw,ncol = which(colnames(tcpa_data_raw) == 'gene_symbol'))
+tcpa_data_flt <- tcpa_data[tcpa_data[,'gene_symbol'] %in% unique(unlist(interaction_gene_raw)),]
+tcpa_data_tot <- tcpa_data_flt[tcpa_data_flt[,'site'] == '',]
+tcpa_data_pho <- tcpa_data_flt[tcpa_data_flt[,'site'] != '',]
+rownames(tcpa_data_pho) <- paste(tcpa_data_pho[,'gene_symbol'],tcpa_data_pho[,'site'],sep = '_')
+tcpa_genes    <- unique(tcpa_data_flt[,'gene_symbol'])
 
-colnames(result_matrix) <- c('gene_symbol','siteid','cell_out','best_alpha','best_inner_q2','best_pred','true_value')
-colnames(outerq_matrix) <- c('site_id','gene','outer_q2')
-colnames(beta_matrix)   <- c('site_id','gene','predictor',colnames(msdata[cell_col]))
+prot_interact    <- interaction_site_raw[interaction_site_raw$geneA %in% tcpa_genes & interaction_site_raw$geneB %in% tcpa_genes & interaction_site_raw[,'geneA'] != interaction_site_raw[,'geneB'],]
+interaction_gene <- interaction_gene_raw[interaction_gene_raw$geneA %in% tcpa_genes & interaction_gene_raw$geneB %in% tcpa_genes & interaction_gene_raw$geneA != interaction_gene_raw$geneB,]
+g <- graph_from_edgelist(as.matrix(interaction_gene))
+network <- as.matrix(as_adjacency_matrix(g))
 
-# iterate of all phos sites related to MAPK pathway
-for (i in 1:length(unique_id)){
-  site_id     <- unique_id[i]
-  gene_symbol <- gene_list[i]
-  model_data  <- data_prepare(site_id,msdata,totdata = totdata,network = network,prot_interact = prot_interact,
-                              gene_interact = gene_interact,cell_col=cell_col,total_cell_col = total_cell_col,mutation_matrix = mutation_matrix,penalty_site = penalty_site,penalty_prot = penalty_prot,penalty_gene = penalty_gene)
+# iterate of all phos sites on the dataset
+
+for (i in 1:nrow(tcpa_data_pho)){
+  site_id     <- rownames(tcpa_data_pho)[i]
+  gene_symbol <- tcpa_data_pho[i,'gene_symbol']
+  print(site_id)
+  model_data  <- data_prepare(site_id,tcpa_data_pho,totdata = tcpa_data_tot,network = network,prot_interact = prot_interact,
+                              data_col=data_col, total_data_col=data_col,penalty_site = penalty_site,penalty_prot = penalty_prot,penalty_gene = penalty_gene)
   name_y <- paste(gene_symbol,site_id,sep = '_')
   if (!is.null(model_data)){
     model_result  <- nestcv(model_data,alphas = alphas,lambdas = lambdas,ntest = num_test)
