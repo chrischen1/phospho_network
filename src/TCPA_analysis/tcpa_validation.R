@@ -15,6 +15,10 @@ data_col <- -(1:3)
 penalty_site      = 0.01
 penalty_prot      = 1
 penalty_gene      = 2
+alphas            = seq(0,1,0.05)
+lambdas           = c()
+indirect_predictor= 0
+num_test          = 1 #number of test sets for outer loop
 
 
 expand_matrix <- function(m,ncol,sep = '; '){
