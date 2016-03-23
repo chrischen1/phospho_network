@@ -1,0 +1,28 @@
+---
+title: "mapk_analysis"
+author: "Chen Chen"
+date: "March 17, 2016"
+output: html_document
+---
+
+
+```{r pressure, echo=FALSE,fig.width=9}
+  beta      <- read.csv('~/Documents/workspace/phospho_network/script_files/analysis_rppa/beta_matrix.csv',as.is = T)
+  result    <- read.csv('~/Documents/workspace/phospho_network/script_files/analysis_rppa/result_matrix.csv',as.is = T)
+
+  site_ids  <- unique(result$gene_site)
+  
+  par(mfrow = c(1,2))
+  for (unique_id in site_ids){
+    predict_matrix <- result[result$gene_site == unique_id,]
+    beta_matrix    <- beta[beta$gene_site == unique_id,]
+    q2_value       <- result[result$gene_site == unique_id,'best_outer_q2'][1]
+    plot(predict_matrix$predict_value,predict_matrix$true_value,ylab = paste('Prediction Q2=',round(q2_value,4)),xlab = 'True value',main = paste('Inner fit for ',unique_id))
+    legend('topleft',legend = colnames(beta_matrix)[-(1:3)],col = 1:9,pch = 'o',box.lty = 0,cex = 0.7)
+    beta_matrix2 <- t(beta_matrix[,-(1:2)])
+    colnames(beta_matrix2) <- beta_matrix$predictor
+    boxplot(beta_matrix2,cex.axis=0.6,las = 2, main = 'coefficients in CV')
+  }
+
+```
+

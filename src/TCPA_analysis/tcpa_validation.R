@@ -9,7 +9,7 @@ tcpa_data_file        = '~/Documents/workspace/phospho_network/processed_data/tc
 interaction_site_file = '~/Documents/workspace/phospho_network/script_files/interaction_data_processed/interaction_table_site_all.csv'
 interaction_gene_file = '~/Documents/workspace/phospho_network/script_files/interaction_data_processed/network_all_gene.csv'
 results_dir           = '~/Documents/workspace/phospho_network/script_files/analysis_rppa'
-result_outfiles       = c('result_matrix.csv','outer_q2.csv','beta_matrix.csv')
+result_outfiles       = c('result_matrix.csv','beta_matrix.csv')
 
 data_col <- -(1:3)
 penalty_site      = 0.01
@@ -19,7 +19,7 @@ alphas            = seq(0,1,0.05)
 lambdas           = c()
 indirect_predictor= 0
 num_test          = 1 #number of test sets for outer loop
-
+outerfold         = 3
 
 expand_matrix <- function(m,ncol,sep = '; '){
   m2 <- m[0,]
@@ -73,74 +73,60 @@ data_prepare <- function(site_id,msdata,totdata,network,prot_interact = prot_int
       x <- cbind(x,'mutation' = as.numeric(mutation_matrix[gene_name,]))
       penalty_vector <- c(penalty_vector,1)
     }
-    data_model$x <- x
+    x2 <- apply(x,2,as.numeric)
+    if(ncol(x2) < 2){return (NULL)}
+    rownames(x2) <- rownames(x)
+    data_model$x <- x2
     data_model$y <- as.numeric(msdata[site_id,data_col])
     data_model$penalty <- penalty_vector
+    data_model$site_id <- site_id
   }
   return (data_model)
 }
 
-nestcv <- function(model_data,alphas,lambdas,ntest = num_test){
-  cell_line_list <- rownames(model_data$x)
-  penalty <- model_data$penalty
-  result_matrix <- matrix(nrow = 0,ncol=5)
-  colnames(result_matrix) <- c('cell_out','alpha','inner_q2','predict_value','true_value')
+nestcv <- function(model_data,alphas,lambdas = NULL,outerfold = 3,innerfold = 10){
+  penalty         <- model_data$penalty
+  test_list       <- list()
+  sample_list     <- 1:nrow(model_data$x)
+  sample_list_tmp <- sample_list
+  for (i in 1:outerfold){
+    test_ind <- sample(sample_list_tmp,size = floor(length(sample_list)/outerfold),replace = F)
+    test_list[[i]] <- test_ind
+    sample_list_tmp <- sample_list_tmp[-test_ind]
+  }
+  result_matrix <- matrix(0,nrow = 0,ncol = 6)
+  colnames(result_matrix) <- c('gene_site','test_set','alpha','predict_value','true_value','best_outer_q2')
+  beta_matrix_raw <- matrix(0,nrow = 0,ncol = ncol(model_data$x))
   outer_pred_list <- rep(0,nrow(model_data$x))
-  beta_matrix <- matrix(0,nrow = 0,ncol = ncol(model_data$x)+1) #include all coefficient and intercept
-  ind <- c(1:10,1:10)
-  beta0 <- c()
   # outer loop
-  for (i in 1:10){
-    cell_out <- cell_line_list[i]
-    test <- ind[i:(i+ntest-1)]
-    outer_test_x <- model_data$x[test,]
-    if(ntest == 1){outer_test_x <- t(outer_test_x)}
-    outer_train_x <- model_data$x[-test,]
-    outer_test_y <- model_data$y[test]
-    outer_train_y <- model_data$y[-test]
+  for (i in 1:outerfold){
+    outer_train_set <- sample_list[-test_list[[i]]]
+    outer_test_set  <- test_list[[i]]
     best_alpha <- 0
-    best_inner_q2 <- -Inf
+    best_err   <- Inf
     # inner loop
-    if(is.null(lambdas)){
-      # lambda not given, train alpha only
-      for (alpha in alphas){
-        best_lambda <- NULL
-        inner_predicts <- lasso_cv(x = outer_train_x,y = outer_train_y,alpha = alpha, lambda = NULL,ntest = 1,penalty = penalty)
-        q2 <- 1 - sum((inner_predicts-outer_train_y)^2)/sum((outer_train_y-mean(outer_train_y))^2)
-        if(q2 > best_inner_q2){
-          best_alpha <- alpha
-          best_inner_q2 <- q2
-        }
-      }
-    }else{
-      #grid search on both lambda and alpha
-      for (lambda in lambdas){
-        for (alpha in alphas){
-          inner_predicts <- lasso_cv(x = outer_train_x,y = outer_train_y,alpha = alpha, lambda = lambda,penalty = penalty)
-          q2 <- 1 - sum((inner_predicts-outer_train_y)^2)/sum((outer_train_y-mean(outer_train_y))^2)
-          if(q2 > best_inner_q2){
-            best_alpha <- alpha
-            best_lambda <- lambda
-            best_inner_q2 <- q2
-          }
-        }
+    for(alpha in alphas){
+      cv_model <- cv.glmnet(model_data$x[-test_list[[i]],],model_data$y[-test_list[[i]]],nfolds = innerfold,penalty.factor = model_data$penalty,alpha = alpha)
+      return_err <- min(cv_model$cvm)
+      if(return_err < best_err){
+        best_alpha <- alpha
+        best_model <- cv_model$glmnet.fit
       }
     }
     #end on inner loop
-    # use best alpha and lambda on test data
-    outer_test_model <- glmnet(outer_train_x,outer_train_y,alpha = best_alpha,lambda = best_lambda,penalty.factor = penalty)
-    return_lambda <- outer_test_model$lambda[which.max(outer_test_model$dev.ratio)]
-    if(is.nan(return_lambda) | is.infinite(return_lambda)){
-      outer_test_model <- glmnet(outer_train_x,outer_train_y,alpha = best_alpha,lambda = 0.001,penalty.factor = penalty)
-    }
-    outer_test_pred <- predict(outer_test_model,newx = outer_test_x,s = return_lambda)
-    if(is.null(best_lambda)){best_lambda <- return_lambda}
-    result_matrix <- rbind(result_matrix,c(cell_out,best_alpha,best_inner_q2,outer_test_pred,outer_test_y))
-    beta0 <- outer_test_model$a0[which.max(outer_test_model$dev.ratio)]
-    beta_matrix <- rbind(beta_matrix,c('intercept' = as.numeric(beta0),outer_test_model$beta[,which.max(outer_test_model$dev.ratio)]))
+    # use best alpha on test data
+    outer_test_pred <- predict(best_model,newx = model_data$x[outer_test_set,],s = cv_model$lambda.min)
+    result_matrix <- rbind(result_matrix,cbind(rep(model_data$site_id,length(outer_test_set)),outer_test_set,rep(best_alpha,length(outer_test_set)),outer_test_pred,model_data$y[outer_test_set],rep(0,length(outer_test_set))))
+    
+    beta_matrix_raw <- rbind(beta_matrix_raw,best_model$beta[,which.max(best_model$dev.ratio)])
   }
-  best_outer_q2 <- 1 - sum((as.numeric(result_matrix[,'predict_value'])-model_data$y)^2)/sum((model_data$y-mean(model_data$y))^2)
-  return(list('matrix' = result_matrix,'best_outer_q2' = best_outer_q2,'beta_matrix' = beta_matrix))
+  pred_all <- as.numeric(result_matrix[,'true_value'])
+  outer_q2 <- 1 - sum((as.numeric(result_matrix[,'predict_value'])-pred_all)^2)/sum((pred_all-mean(pred_all))^2)
+  
+  beta_matrix <- t(rbind(rep(model_data$site_id,ncol(beta_matrix_raw)),colnames(model_data$x),beta_matrix_raw))
+  colnames(beta_matrix) <- c('gene_site','predictor',paste('test',1:outerfold,sep = '_'))
+  result_matrix[,'best_outer_q2'] <- rep(outer_q2,nrow(result_matrix))
+  return(list('matrix' = result_matrix,'best_outer_q2' = outer_q2,'beta_matrix' = beta_matrix))
 }
 
 # leave-1-out cross validation,return predicted values
@@ -203,23 +189,23 @@ g <- graph_from_edgelist(as.matrix(interaction_gene))
 network <- as.matrix(as_adjacency_matrix(g))
 
 # iterate of all phos sites on the dataset
+result_matrix <- matrix(0,nrow = 0,ncol = 6)
+beta_matrix   <- matrix(0,nrow = 0,ncol = 2+outerfold)
+colnames(beta_matrix)   <- c('gene_site','predictor',paste('test',1:outerfold,sep = '_'))
+colnames(result_matrix) <- c('gene_site', 'test_set', 'alpha', 'predict_value', 'true_value', 'best_outer_q2')
 
 for (i in 1:nrow(tcpa_data_pho)){
   site_id     <- rownames(tcpa_data_pho)[i]
   gene_symbol <- tcpa_data_pho[i,'gene_symbol']
-  print(site_id)
   model_data  <- data_prepare(site_id,tcpa_data_pho,totdata = tcpa_data_tot,network = network,prot_interact = prot_interact,
                               data_col=data_col, total_data_col=data_col,penalty_site = penalty_site,penalty_prot = penalty_prot,penalty_gene = penalty_gene)
   name_y <- paste(gene_symbol,site_id,sep = '_')
   if (!is.null(model_data)){
-    model_result  <- nestcv(model_data,alphas = alphas,lambdas = lambdas,ntest = num_test)
-    new_result    <- cbind('gene' = rep(gene_symbol,length(cell_col)),'site_id' = rep(site_id,length(cell_col)),model_result$matrix)
-    result_matrix <- rbind(result_matrix,new_result)
-    outerq_matrix <- rbind(outerq_matrix,cbind(site_id,gene_symbol,model_result$best_outer_q2))
-    beta_matrix   <- rbind(beta_matrix,cbind(site_id,gene_symbol,colnames(model_result$beta_matrix),t(model_result$beta_matrix)))
+    model_result  <- nestcv(model_data,alphas = alphas,outerfold = outerfold)
+    result_matrix <- rbind(result_matrix,model_result$matrix)
+    beta_matrix   <- rbind(beta_matrix,model_result$beta_matrix)
   }
 }
 
 write.csv(result_matrix,paste(results_dir,result_outfiles[1],sep = '/'),row.names = F)
-write.csv(outerq_matrix,paste(results_dir,result_outfiles[2],sep = '/'),row.names = F)
-write.csv(beta_matrix,paste(results_dir,result_outfiles[3],sep = '/'),row.names = F)
+write.csv(beta_matrix,paste(results_dir,result_outfiles[2],sep = '/'),row.names = F)
