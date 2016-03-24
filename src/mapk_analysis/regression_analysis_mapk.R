@@ -1,15 +1,18 @@
 # This Rscript would take a processed MS data file(data_processing.R) as input, and do the following steps:
-# 1.Import the MS data and network file(as an adjacency matrix) from csv files
+# 1.Import the MS data and network file(as edge list) from csv files
 # 2.Filter the data by keeping only proteins in the network 
 # 3.Nodes 1 level further upstream could also be treated as predictors, but a penalty factor would be imposed
 # 4.Construct the LASSO model: PeptideA_site1 ~ PeptideA_site1 + PeptideA_site2...
 # 5.Evaluate the model with r-square and q-square
 # input files:
 # 1. msdata_filename tot_prt_filename are processed MS data for phos or total protein
-# 2. network_filename: network for mapk pathway as adj matrix for literal including kegg
-# 3. prot_table_file gene_table_file addtional info for protein/site interactions or gene interactions
-# 4. mutation_filename is info about mutations on each cell lines
-
+# 2. interaction_gene_file: info for gene interactions or gene interactions to build the network
+# 3. interaction_site_file: addtional info for protein/site interactions or gene interactions
+# 4. mutation_filename is info about mutations on each sample
+# 5. target_gene_file: genes of interest used as response
+# output files:
+# 1.result_matrix is the prediction versus true value from Nested cross validation, it also contains the value for hyperparameters trained from inner loop
+# 2.beta_matrix is the table for coefficient from different testsets.
 library(glmnet)
 library(methods)
 

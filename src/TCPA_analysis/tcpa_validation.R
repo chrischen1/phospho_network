@@ -8,10 +8,12 @@ library(igraph)
 tcpa_data_file        = '~/Documents/workspace/phospho_network/processed_data/tcpa/tcpa_data_processed.csv'
 interaction_site_file = '~/Documents/workspace/phospho_network/script_files/interaction_data_processed/interaction_table_site_all.csv'
 interaction_gene_file = '~/Documents/workspace/phospho_network/script_files/interaction_data_processed/network_all_gene.csv'
+target_gene_file      = '~/Documents/workspace/phospho_network/script_files/analysis_rppa/response_list.txt'
+
 results_dir           = '~/Documents/workspace/phospho_network/script_files/analysis_rppa'
 result_outfiles       = c('result_matrix.csv','beta_matrix.csv')
 
-data_col <- -(1:3)
+data_col          = 4:413
 penalty_site      = 0.01
 penalty_prot      = 1
 penalty_gene      = 2
@@ -23,18 +25,24 @@ outerfold         = 3
 
 expand_matrix <- function(m,ncol,sep = '; '){
   m2 <- m[0,]
+  collision <- c()
   for(i in 1:nrow(m)){
     var_split <- strsplit(m[i,ncol],split = sep)[[1]]
     if(length(var_split) <= 1){
       m2 <- rbind(m2,m[i,])
+      collision <- c(collision,'')
     }else if(length(var_split) > 1){
+      # avoid 'perfect prediction'
       new_table <- matrix(rep(as.character(m[i,]),length(var_split)),nrow = length(var_split),byrow = T)
       new_table[,ncol] <- var_split
       colnames(new_table) <- colnames(m2)
       m2 <- rbind(m2,new_table)
+      collision <- c(collision,rep(m[i,ncol],length(var_split)))
     }
   }
-  return(m2)
+  m3 <- cbind(m2,collision)
+  m3[,'collision'] <- as.character(m3[,'collision'])
+  return(m3)
 }
 
 data_prepare <- function(site_id,msdata,totdata,network,prot_interact = prot_interact, gene_interact = NULL,
@@ -44,6 +52,13 @@ data_prepare <- function(site_id,msdata,totdata,network,prot_interact = prot_int
   site_list <- strsplit(msdata[site_id,'site'],split = ';')[[1]]
   all_predictors_genes <- rownames(network)[network[,gene_name] > 0]
   all_predictors_data  <- msdata[msdata$gene_symbol %in% all_predictors_genes,]
+  if('collision' %in% colnames(msdata)){
+    if(msdata[site_id,'collision'] != ''){
+      collision_names <- strsplit(msdata[site_id,'collision'],'; ')[[1]]
+      collision_ids   <- paste(collision_names,msdata[site_id,'site'],sep = '_')
+      all_predictors_data <- all_predictors_data[-(which(rownames(all_predictors_data) %in% collision_ids)),]
+    }
+  }
   if(nrow(all_predictors_data) < 1){
     return(NULL)
   }else{
@@ -171,7 +186,10 @@ cal_q2 <- function(true,pred){
   return(1 - sum((pred-true)^2)/sum((true-mean(true))^2))
 }
 
+
 # main body
+tar_genes  <- gsub('(\\w+)_.+','\\1',unlist(read.table(target_gene_file,as.is = T)))
+
 tcpa_data_raw <- read.csv(tcpa_data_file,as.is = T,header = T)
 interaction_site_raw <- read.csv(interaction_site_file,as.is = T)
 interaction_gene_raw <- read.csv(interaction_gene_file,as.is = T)
@@ -185,6 +203,7 @@ tcpa_genes    <- unique(tcpa_data_flt[,'gene_symbol'])
 
 prot_interact    <- interaction_site_raw[interaction_site_raw$geneA %in% tcpa_genes & interaction_site_raw$geneB %in% tcpa_genes & interaction_site_raw[,'geneA'] != interaction_site_raw[,'geneB'],]
 interaction_gene <- interaction_gene_raw[interaction_gene_raw$geneA %in% tcpa_genes & interaction_gene_raw$geneB %in% tcpa_genes & interaction_gene_raw$geneA != interaction_gene_raw$geneB,]
+
 g <- graph_from_edgelist(as.matrix(interaction_gene))
 network <- as.matrix(as_adjacency_matrix(g))
 
@@ -194,9 +213,11 @@ beta_matrix   <- matrix(0,nrow = 0,ncol = 2+outerfold)
 colnames(beta_matrix)   <- c('gene_site','predictor',paste('test',1:outerfold,sep = '_'))
 colnames(result_matrix) <- c('gene_site', 'test_set', 'alpha', 'predict_value', 'true_value', 'best_outer_q2')
 
-for (i in 1:nrow(tcpa_data_pho)){
-  site_id     <- rownames(tcpa_data_pho)[i]
-  gene_symbol <- tcpa_data_pho[i,'gene_symbol']
+target_list <- rownames(tcpa_data_pho)[tcpa_data_pho$gene_symbol %in% tar_genes]
+
+for (i in 1:length(target_list)){
+  site_id     <- target_list[i]
+  gene_symbol <- strsplit(site_id,split = '_')[[1]][1]
   model_data  <- data_prepare(site_id,tcpa_data_pho,totdata = tcpa_data_tot,network = network,prot_interact = prot_interact,
                               data_col=data_col, total_data_col=data_col,penalty_site = penalty_site,penalty_prot = penalty_prot,penalty_gene = penalty_gene)
   name_y <- paste(gene_symbol,site_id,sep = '_')
