@@ -14,55 +14,75 @@ el2adj <- function(el,d = F){
   return(adj)
 }
 
-heat_influence <- function(adj,b=0.2){
+heat_influence <- function(adj,b=0.6){
   w <- t(t(adj)/colSums(adj))
   w[adj==0] <- 0
   influence_matrix <- ginv(diag(nrow(adj))-(1-b)*w)*b
   colnames(influence_matrix) <- colnames(adj)
   rownames(influence_matrix) <- rownames(adj)
-  return(influence_matrix)
+  return(t(influence_matrix))
 }
 
-heat_difussion_analysis <- function(edge_list,node_index,influence_matrix,y_ind = 1){
-  node_names <- node_index$V2
-  colnames(influence_matrix) <- node_names
-  rownames(influence_matrix) <- node_names
+heat_difussion_analysis <- function(adj,influence_matrix,y_ind){
   net_im=graph.adjacency(t(influence_matrix),mode="directed",weighted=TRUE,diag=F) #"heat" should flow from downstream of the pathway to upstream
-  edge_list <- as.matrix(edge_list)
-  g <- graph_from_edgelist(edge_list,directed = T)
-  g_adj <- as.matrix(get.adjacency(g))
-  colnames(g_adj) <- node_names
-  rownames(g_adj) <- node_names
-  g <- graph.adjacency(g_adj,mode="directed")
+  g <- graph_from_adjacency_matrix(adj)
   plot(g,vertex.label.cex = 0.8,edge.arrow.size=0.6)
-  
   # plot influence matrix
   E <- t(apply(get.edgelist(net_im),1,sort))
   E(net_im)$curved <- 0
-  E(net_im)[duplicated(E) | duplicated(E,fromLast =TRUE)]$curved <- 0.2
-  plot(net_im,edge.width=E(net_im)$weight*10/max(influence_matrix),vertex.label.cex = 0.7,edge.arrow.size = max(influence_matrix)*0.8)
+  E(net_im)[duplicated(E) | duplicated(E,fromLast =TRUE)]$curved <- 0.4
+  w_vec <- (log(E(net_im)$weight+0.1)-min(log(E(net_im)$weight+0.1)))*3
+  plot(net_im,edge.width=w_vec,vertex.label.cex = 0.7,edge.arrow.size = max(w_vec)/10)
   # print(influence_matrix)
   #heat diffusion
   heat_matrix <- matrix(0,ncol = ncol(influence_matrix),nrow = nrow(influence_matrix))
   colnames(heat_matrix) <- colnames(influence_matrix)
   rownames(heat_matrix) <- rownames(influence_matrix)
-  heat_ind <- which(rownames(heat_matrix) == node_index$V2[y_ind])
+  heat_ind <- which(rownames(heat_matrix) == y_ind)
   heat_matrix[heat_ind,heat_ind] <- 1
-  heat_diffusion <- t(influence_matrix %*% heat_matrix)
-  net_hd=graph.adjacency(heat_diffusion,mode="directed",weighted=TRUE,diag=F)
+  heat_diffusion <- influence_matrix %*% heat_matrix
+  net_hd=graph.adjacency(t(heat_diffusion),mode="directed",weighted=TRUE,diag=F)
   plot(net_hd,edge.width=E(net_hd)$weight*7/max(E(net_hd)$weight),edge.label=round(E(net_hd)$weight,3),vertex.label.cex = 0.7)
   # print(heat_diffusion)
+  plot_heat_flow(network_adj = adj,hi_matrix = influence_matrix,predictors = heat_diffusion[heat_diffusion[,heat_ind]>0.01*max(heat_diffusion[,heat_ind]),heat_ind])
 }
 
-add_gfeatures <- function(edge_list,node_index){
-  cnvs <- paste(node_index[,2],'cnv',sep = '_')
-  muts <- paste(node_index[,2],'mut',sep = '_')
-  mrna <- paste(node_index[,2],'mrna',sep = '_')
-  newf <- cbind((max(node_index[,1])+1):(max(node_index[,1])+length(c(cnvs,muts,mrna))),c(cnvs,muts,mrna))
-  new_ni <- rbind(node_index,newf)
-  newi <- cbind(newf[,1],node_index[,1])
-  new_el <- rbind(edge_list,apply(newi,2,as.numeric))
-  return(list('node_index'=new_ni,'edge_list'= new_el))
+add_gfeatures <- function(edge_list){
+  node_index <- unique(c(edge_list[,1],edge_list[,2]))
+  cnvs <- paste(node_index,'cnv',sep = '_')
+  muts <- paste(node_index,'mut',sep = '_')
+  mrna <- paste(node_index,'mrna',sep = '_')
+  new_el <- rbind(edge_list,cbind(c(muts,mrna),rep(node_index,2)),cbind(cnvs,mrna))
+  return(new_el)
+}
+
+predictor_construct <- function(test_node,test_gene,hi_matrix,b = 0.6, k = 0.05){
+  #create heat flow by heat influence and test_node
+  heat_input <- matrix(0,nrow(hi_matrix),nrow(hi_matrix))
+  colnames(heat_input) <- colnames(hi_matrix)
+  rownames(heat_input) <- colnames(hi_matrix)
+  heat_input[test_node,test_node] <- 1
+  heat_flow <- hi_matrix %*% heat_input
+  predictors <- heat_flow[,test_node][heat_flow[,test_node] >= k*heat_flow[paste(test_gene,'CNV',sep = '_'),test_node]]
+  return(predictors)
+}
+
+# plot predictors with heat flow in orginal pathway structure
+plot_heat_flow <- function(network_adj,hi_matrix,predictors){
+  #create sub heat influence matrix by predictors
+  hi_matrix2 <- hi_matrix[names(predictors),names(predictors)]
+  hi_matrix2[hi_matrix2<0] <- 0
+  hi_matrix2 <- t(hi_matrix2)
+  hi_matrix2[t(network_adj[names(predictors),names(predictors)])==0] <- 0
+  #normalize heat value and sub heat influence matrix
+  predictors <- predictors/sum(predictors)
+  percent_heat_receive <- hi_matrix2/apply(hi_matrix2,1,sum)
+  percent_heat_receive[is.nan(percent_heat_receive)] <- 0
+  # each node recevie heat by its heat from predictors times the ratio of heat receive in sub heat influence matrix
+  g_sub_adj <- percent_heat_receive * predictors
+  g_sub <- graph_from_adjacency_matrix(g_sub_adj,weighted = T)
+  w_vec <- log(E(g_sub)$weight)-min(log(E(g_sub)$weight))+0.1
+  plot(g_sub,edge.width=w_vec,edge.arrow.size = max(w_vec)/10)
 }
 
 ```
@@ -71,38 +91,30 @@ add_gfeatures <- function(edge_list,node_index){
 First is a very simple model with 5 nodes and 4 edges, and we set gene3 with unit heat to diffuse:
 
 ```{r pressure, echo=FALSE}
-edge_list <- read.table('~/Downloads/hotnet2/toy_model/example_edgelist.txt',header = F,sep = ' ',as.is = T)
+edge_list <- as.matrix(read.table('~/Downloads/hotnet2/toy_model/example_edgelist.txt',header = F,sep = ' ',as.is = T))
 node_index <- read.table('~/Downloads/hotnet2/toy_model/example_gene_index.txt',header = F,sep = ' ',as.is = T)
-adj <- el2adj(edge_list,d = F)
-influence_matrix <- heat_influence(adj)
-heat_difussion_analysis(edge_list,node_index,influence_matrix,y_ind = 3)
+edge_list2 <- apply(edge_list,2,function(x)node_index[x,2])
+adj <- el2adj(edge_list2,d = T)
+influence_matrix <- heat_influence(t(adj))
+heat_difussion_analysis(adj,influence_matrix,y_ind = 'gene3')
 
 ```
 
 Then we try on MAPK pathway, with RAF1 as the gene we want to predict:
 
 ```{r, echo=FALSE}
-mapk_adj <- read.csv('~/Documents/workspace/phospho_network/RAWDATA/mapk_info/mapk_network_kegg.csv',row.names = 1,as.is = T)
-mapk_adj_num <- as.matrix(mapk_adj)
-colnames(mapk_adj_num) <- 1:nrow(mapk_adj_num)
-rownames(mapk_adj_num) <- 1:nrow(mapk_adj_num)
-node_index_mapk <- cbind(colnames(mapk_adj_num),colnames(mapk_adj))
-node_index_mapk[,1] <- as.numeric(node_index_mapk[,1])
-node_index_mapk <- as.data.frame(node_index_mapk)
-edge_list_mapk <- get.edgelist(graph.adjacency(mapk_adj_num,mode="directed"))
-edge_list_mapk <- apply(edge_list_mapk,2,as.numeric)
-influence_matrix_mapk <- heat_influence(el2adj(edge_list_mapk,d = T))
-heat_difussion_analysis(edge_list_mapk,node_index_mapk,influence_matrix_mapk,y_ind = which(node_index_mapk$V2 == 'RAF1'))
+mapk_adj <- as.matrix(read.csv('~/Documents/workspace/phospho_network/RAWDATA/mapk_info/mapk_network_kegg.csv',row.names = 1,as.is = T))
+influence_matrix_mapk <- heat_influence(t(mapk_adj))
+heat_difussion_analysis(adj = mapk_adj,influence_matrix = influence_matrix_mapk,y_ind = 'RAF1')
 ```
 
 
 Then, we add the genetic features to the simple network:
 
 ```{r,echo=F}
-new_network <- add_gfeatures(edge_list,node_index)
-edge_list2 <- new_network$edge_list
-node_index2 <- new_network$node_index
-adj2 <- el2adj(edge_list2,d = T)
-influence_matrix2 <- heat_influence(adj2)
-heat_difussion_analysis(edge_list2,node_index2,influence_matrix2,y_ind = 3)
+new_network <- add_gfeatures(edge_list2)
+adj2 <- el2adj(new_network,d = T)
+influence_matrix2 <- heat_influence(t(adj2))
+heat_difussion_analysis(adj = adj2,influence_matrix = influence_matrix2,y_ind = 'gene3')
+
 ```

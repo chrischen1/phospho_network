@@ -1,6 +1,7 @@
 # transform TCGA level 3 CNV data to gene and mean 
 cnv_file = '~/Documents/workspace/phospho_network/RAWDATA/tcga_brac/brca_hg19_qc.merged.seg'
 rna_file = '~/Documents/workspace/phospho_network/RAWDATA/tcga_brac/BRCA.exp.547.med.txt'
+out_path = '~/Documents/workspace/phospho_network/script_files/TCGA_analysis'
 
 library("biomaRt")
 cnv_data <- read.table(cnv_file,as.is = T,header = T,sep = '\t')
@@ -25,9 +26,15 @@ return_gene <- function(x){
   return(genes)
 }
 
-cnv_data_intersect <- cnv_data_intersect_raw[1:5,]
+cnv_data_intersect <- cnv_data_intersect_raw[abs(cnv_data_intersect_raw$seg.mean)>0.2,]
+filterlist <- rep(NA,nrow(cnv_data_intersect))
+while(sum(is.na(filterlist)>0)){
+  list_ind <- min(which(is.na(filterlist)))
+  for(i in list_ind:nrow(cnv_data_intersect)){
+    filterlist[i] <- return_gene(cnv_data_intersect[i,])
+  }
+}
 
-filterlist <- apply(cnv_data_intersect,1,return_gene)
 cnv_mapping <- cbind.data.frame(cnv_data_intersect,filterlist, stringsAsFactors = FALSE)
 
 cnv_gene <- matrix(0,ncol = 3,nrow = 0)
@@ -59,11 +66,11 @@ sample_intersect <- intersect(colnames(cnv_gene_matrix),colnames(rna_data_inters
 rna_matrix_intersect <- rna_data_intersect[genes_intersect,sample_intersect]
 cnv_matrix_intersect <- cnv_gene_matrix[genes_intersect,sample_intersect]
 
-write.csv(rna_matrix_intersect,'rna_processed.csv')
-write.csv(cnv_matrix_intersect,'cnv_processed.csv')
+write.csv(rna_matrix_intersect,paste(out_path,'rna_processed.csv',sep = '/'))
+write.csv(cnv_matrix_intersect,paste(out_path,'cnv_processed.csv',sep = '/'))
 
 
-#with all genes
+# benchmark with all genes
 # cors <- c()
 # max_abs <- c()
 # iqrs <- c()
