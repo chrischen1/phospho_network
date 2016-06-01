@@ -15,28 +15,24 @@
 
 library(glmnet)
 library(methods)
-library(igraph)
 
 # Set inputs:
 rna_filename          = '~/Documents/workspace/phospho_network/RAWDATA/tcga_brac/BRCA.exp.547.med.txt'
 cnv_filename          = '~/Documents/workspace/phospho_network/script_files/TCGA_analysis/cnv_processed.csv'
-mut_filename          = '~/Documents/workspace/phospho_network/script_files/TCGA_analysis/mutation_matrix.csv'
-heat_influence_file   = '~/Documents/workspace/phospho_network/script_files/TCGA_analysis/heat_influence.csv'
-network_file          = '~/Documents/workspace/phospho_network/script_files/TCGA_analysis/network.csv'
+mut_filename          = '~/Documents/workspace/phospho_network/script_files/TCGA_analysis/mutation_matrix_classified.csv'
+heat_influence_file   = '~/Documents/workspace/temp_files/heat_influence_all_rna.csv'
+network_file          = '~/Documents/workspace/temp_files/network_all_rna.csv'
 
-# Special for RPPA analysis
-measure_filename      = '~/Documents/workspace/phospho_network/RAWDATA/tcga_brac/rppaData-403Samp-171Ab-Trimmed.txt'
-rppa_mapping_file1    = '~/Documents/workspace/phospho_network/RAWDATA/tcga_brac/BRCA.RPPA.Level_3/mdanderson.org_BRCA.MDA_RPPA_Core.mage-tab.1.0.0/mdanderson.org_BRCA.MDA_RPPA_Core.antibody_annotation.txt'
-rppa_mapping_file2    = '~/Documents/workspace/phospho_network/RAWDATA/TCPA/TCPA_ANTIBODY_MAPPING.txt'
+# target value input:
+mdata_filename        = '~/Documents/workspace/phospho_network/script_files/TCGA_analysis/rppa_processed.csv'
 
 # Set parameters
 result_path       = '~/Documents/workspace/phospho_network/script_files/TCGA_analysis'
-result_outfiles   = c('result_matrix_nop.csv','beta_matrix_nop.csv')
+result_outfiles   = c('result_matrix_all_rna_lasso.csv','beta_matrix_all_rna_lasso.csv')
 
-k                 = 0.5  # a parameter to define the extend of predictors by keep nodes receive more heat than k*(heat_response_CNV)
-alphas            = seq(0,1,0.05)
+k                 = 0.01  # a parameter to define the extend of predictors by keep nodes receive more heat than k*(heat_response_CNV)
+alphas            = c(1)
 lambdas           = c()
-num_test          = 1 #number of test sets for outer loop
 outerfold         = 10
 innerfold         = 9
 i_penalty         = F # use different penalty based on heat diffusion?
@@ -61,48 +57,51 @@ predictor_construct <- function(test_node,hi_matrix,k = 1,test_gene = NULL){
 
 # given a site_id, return a list with list$x are the predictors, and list$y are true responses
 data_prepare <- function(test_name,mdata,mut_data,cnv_data,rna_data,predictors,i_penalty){
-    # add rna info
-    rna_predictors <- predictors[grep('_RNA',names(predictors))]
-    rna_symbol <- gsub('(.+)_RNA','\\1',names(rna_predictors))
-    rna_symbol <- rna_symbol[rna_symbol %in% rownames(rna_data)]
-    rna_x <- t(rna_data[rna_symbol,])
-    if(ncol(rna_x)>0){
-      colnames(rna_x) <- paste(colnames(rna_x),'RNA',sep = '_')
-    }
-    # add cnv info
-    cnv_predictors <- predictors[grep('_CNV',names(predictors))]
-    cnv_symbol <- gsub('(.+)_CNV','\\1',names(cnv_predictors))
-    cnv_symbol <- cnv_symbol[cnv_symbol %in% rownames(cnv_data)]
-    cnv_x <- t(cnv_data[cnv_symbol,])
-    if(ncol(cnv_x)>0){
-      colnames(cnv_x) <- paste(colnames(cnv_x),'CNV',sep = '_')
-    }
-    # add mutation information
-    mut_predictors <- predictors[grep('_mutation',names(predictors))]
-    mut_symbol <- gsub('(.+)_mutation','\\1',names(mut_predictors))
-    mut_symbol <- mut_symbol[mut_symbol %in% rownames(mut_data)]
-    mut_x <- t(mut_data[mut_symbol,])
-    if(ncol(mut_x)>0){
-      colnames(mut_x) <- paste(colnames(mut_x),'mutation',sep = '_')
-    }
-    data_x <- cbind(rna_x,cnv_x,mut_x)
-    if(ncol(data_x) <= 2){return (NULL)}
-    data_x <- apply(data_x,2,as.numeric)
-    valid_sample <- apply(data_x,1,function(x)sum(is.na(x))==0)
-    data_x <- data_x[valid_sample,]
-    pen_vec <- abs(log(predictors[colnames(data_x)]))
-    # return x and y
-    data_model <- list()
-    data_model$x <- data_x
-    data_model$y <- as.numeric(t(mdata[test_name,]))[valid_sample]
-    if(max(pen_vec) == min(pen_vec) | !i_penalty){
-      penalty <- predictors/predictors
-    }else{
-      penalty <- (pen_vec-min(pen_vec))/(max(pen_vec)-min(pen_vec))
-    }
-    data_model$penalty <- penalty
-    data_model$site_id <- test_name
-    return (data_model)
+  # add rna info
+  rna_predictors <- predictors[grep('_RNA',names(predictors))]
+  rna_symbol <- gsub('(.+)_RNA','\\1',names(rna_predictors))
+  rna_symbol <- rna_symbol[rna_symbol %in% rownames(rna_data)]
+  rna_x <- t(rna_data[rna_symbol,])
+  if(ncol(rna_x)>0){
+    colnames(rna_x) <- paste(colnames(rna_x),'RNA',sep = '_')
+  }
+  # add cnv info
+  cnv_predictors <- predictors[grep('_CNV',names(predictors))]
+  cnv_symbol <- gsub('(.+)_CNV','\\1',names(cnv_predictors))
+  cnv_symbol <- cnv_symbol[cnv_symbol %in% rownames(cnv_data)]
+  cnv_x <- t(cnv_data[cnv_symbol,])
+  if(ncol(cnv_x)>0){
+    colnames(cnv_x) <- paste(colnames(cnv_x),'CNV',sep = '_')
+  }
+  # add mutation information
+  mut_predictors <- predictors[grep('_mutation',names(predictors))]
+  mut_symbol <- gsub('(.+)_mutation','\\1',names(mut_predictors))
+  mut_symbol <- mut_symbol[mut_symbol %in% rownames(mut_data)]
+  mut_x <- t(mut_data[mut_symbol,])
+  if(ncol(mut_x)>0){
+    mut_x2 <- apply((!(mut_x == '' | mut_x == 0)),2,as.numeric)
+    colnames(mut_x2) <- paste(colnames(mut_x),'mutation',sep = '_')
+    rownames(mut_x2) <- rownames(mut_x)
+    
+  }
+  data_x <- cbind(rna_x,cnv_x,mut_x2)
+  if(ncol(data_x) <= 2){return (NULL)}
+  data_x <- apply(data_x,2,as.numeric)
+  valid_sample <- apply(data_x,1,function(x)sum(is.na(x))==0)
+  data_x <- data_x[valid_sample,]
+  pen_vec <- abs(log(predictors[colnames(data_x)]))
+  # return x and y
+  data_model <- list()
+  data_model$x <- data_x
+  data_model$y <- as.numeric(t(mdata[test_name,]))[valid_sample]
+  if(max(pen_vec) == min(pen_vec) | !i_penalty){
+    penalty <- predictors/predictors
+  }else{
+    penalty <- (pen_vec-min(pen_vec))/(max(pen_vec)-min(pen_vec))
+  }
+  data_model$penalty <- penalty
+  data_model$site_id <- test_name
+  return (data_model)
 }
 
 # Nested cross validation: alpha and lambda are vectors for grid search, if lambda is set to NULL, it would train alpha only and let glmnet to decide lambda
@@ -163,50 +162,23 @@ cal_q2 <- function(true,pred){
   return(1 - sum((pred-true)^2)/sum((true-mean(true))^2))
 }
 
-rppa_mapping <- function(measure_filename,rppa_mapping_file1,rppa_mapping_file2){
-  mdata <- read.table(measure_filename,sep = '\t',as.is = T)
-  mappping1 <- read.table(rppa_mapping_file1,sep = '\t',as.is = T)
-  mappping2 <- read.table(rppa_mapping_file2,sep = '\t',as.is = T)
-  mdata2 <- mdata[-1,-1]
-  colnames(mdata2) <- gsub(pattern = '(\\w+\\.\\w+\\.\\w+\\.\\d+).+',replacement = '\\1',x = mdata[1,-1])
-  #mapping gene names
-  antibody_names <- tolower(gsub('(.+)-[A-Z]+-[A-Z]+','\\1',mappping1$V3[-1]))
-  antibody_table <- rbind(cbind(mappping1$V1[-1],antibody_names),cbind(mappping2$V2,tolower(mappping2$V1)))
-  antibody_table[,2] <- gsub('[\\.|\\-]','_',antibody_table[,2])
-  antibody_table <- unique(antibody_table)
-  antibody_list  <- gsub('[\\.|\\-]','_',tolower(mdata[-1,1]))
-  #mapping position
-  positions <- lapply(strsplit(antibody_table[,2],split = '_ps|_pt|_py'),function(x)gsub('[a-z]','',paste(x[-1],collapse = '_')))
-  positions2 <- gsub('_$','',unlist(positions),perl = T)
-  # correct errors in list:
-  antibody_table[antibody_table == 'Rab, 25'] <- 'RAB25'
-  genes <- gsub('\\W+',';',antibody_table[,1])
-  genes[genes == 'PIK3R1;2'] <- 'PIK3R1;PIK3R2'
-  genes2 <- gsub(';$','',genes)
-  #paste gene name and position
-  gene_pos <- paste(genes2,gsub('_',';',positions2),sep = '_')
-  names(gene_pos) <- antibody_table[,2]
-  gene_pos['bcl_xl'] <- "obsolutedBCL2L1_"
-  rownames(mdata2) <- gene_pos[antibody_list]
-  return(mdata2)
-}
 
-rppa_y_select <- function(rppa_nodes){
-  rppa_p <- grep('\\w+_\\w+',rppa_nodes,value = T)
-  rppa_plist <- strsplit(rppa_p,split = '_')
-  rppa_pgenes <- strsplit(unlist(lapply(rppa_plist,function(x)x[1])),split = ';')
-  rppa_psites <- strsplit(unlist(lapply(rppa_plist,function(x)x[2])),split = ';')
-  rppa_pnodes <- c()
-  for(i in 1:length(rppa_pgenes)){
-    new_nodes=expand.grid(rppa_pgenes[[i]],rppa_psites[[i]])
-    rppa_pnodes <- c(rppa_pnodes,paste(paste(new_nodes$Var1,new_nodes$Var2,sep = '_'),collapse = ';'))
+mdata_y_pick <- function(mdata_names){
+  mdata_p <- grep('\\w+_\\w+',mdata_names,value = T)
+  mdata_plist <- strsplit(mdata_p,split = '_')
+  mdata_pgenes <- strsplit(unlist(lapply(mdata_plist,function(x)x[1])),split = ';')
+  mdata_psites <- strsplit(unlist(lapply(mdata_plist,function(x)x[2])),split = ';')
+  mdata_pnodes <- c()
+  for(i in 1:length(mdata_pgenes)){
+    new_nodes=expand.grid(mdata_pgenes[[i]],mdata_psites[[i]])
+    mdata_pnodes <- c(mdata_pnodes,paste(paste(new_nodes$Var1,new_nodes$Var2,sep = '_'),collapse = ';'))
   }
-  return(cbind(rppa_p,rppa_pnodes))
+  return(cbind(mdata_p,mdata_pnodes))
 }
 
 # Main
 # import dataset
-mdata <- rppa_mapping(measure_filename,rppa_mapping_file1,rppa_mapping_file2)
+mdata <- read.csv(mdata_filename,row.names = 1)
 mut_data  <- read.csv(mut_filename,as.is = T,row.names = 1)
 rna_data_raw  <- read.table(rna_filename,as.is = T,row.names = 1,fill = NA)
 rna_data <- rna_data_raw[-1,]
@@ -220,7 +192,7 @@ network   <- as.matrix(read.csv(network_file,row.names = 1))
 hi_matrix <- as.matrix(read.csv(heat_influence_file,row.names = 1))
 
 #filter response avaliable in the network
-response_list <- rppa_y_select(rownames(mdata))
+response_list <- mdata_y_pick(rownames(mdata))
 node_all <- rownames(hi_matrix)
 
 # sample_intersect <- Reduce(intersect, list(colnames(mdata),colnames(rna_data),colnames(cnv_data)))
@@ -249,6 +221,7 @@ colnames(beta_matrix)   <- c('gene_site','predictor',paste('test',1:outerfold,se
 colnames(result_matrix) <- c('gene_site', 'test_set', 'alpha', 'predict_value', 'true_value', 'best_outer_q2')
 
 for(test_name in response_list[,1]){
+  print(test_name)
   test_node <- strsplit(response_list[response_list[,1] == test_name,2],split = ';')[[1]]
   test_node_valid <- test_node[test_node %in% node_all]
   if(length(test_node_valid) == 0){

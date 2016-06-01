@@ -26,13 +26,13 @@ heat_influence <- function(adj,b=0.6){
 heat_difussion_analysis <- function(adj,influence_matrix,y_ind){
   net_im=graph.adjacency(t(influence_matrix),mode="directed",weighted=TRUE,diag=F) #"heat" should flow from downstream of the pathway to upstream
   g <- graph_from_adjacency_matrix(adj)
-  plot(g,vertex.label.cex = 0.8,edge.arrow.size=0.6)
+  plot(g,vertex.label.cex = 0.5,edge.arrow.size=0.6)
   # plot influence matrix
   E <- t(apply(get.edgelist(net_im),1,sort))
   E(net_im)$curved <- 0
   E(net_im)[duplicated(E) | duplicated(E,fromLast =TRUE)]$curved <- 0.4
   w_vec <- (log(E(net_im)$weight+0.1)-min(log(E(net_im)$weight+0.1)))*3
-  plot(net_im,edge.width=w_vec,vertex.label.cex = 0.7,edge.arrow.size = max(w_vec)/10)
+  plot(net_im,edge.width=w_vec,vertex.label.cex = 0.4,edge.arrow.size = max(w_vec)/10)
   # print(influence_matrix)
   #heat diffusion
   heat_matrix <- matrix(0,ncol = ncol(influence_matrix),nrow = nrow(influence_matrix))
@@ -50,7 +50,7 @@ heat_difussion_analysis <- function(adj,influence_matrix,y_ind){
 add_gfeatures <- function(edge_list){
   node_index <- unique(c(edge_list[,1],edge_list[,2]))
   cnvs <- paste(node_index,'cnv',sep = '_')
-  muts <- paste(node_index,'mut',sep = '_')
+  muts <- paste(node_index,'mutation',sep = '_')
   mrna <- paste(node_index,'mrna',sep = '_')
   new_el <- rbind(edge_list,cbind(c(muts,mrna),rep(node_index,2)),cbind(cnvs,mrna))
   return(new_el)
@@ -82,7 +82,7 @@ plot_heat_flow <- function(network_adj,hi_matrix,predictors){
   g_sub_adj <- percent_heat_receive * predictors
   g_sub <- graph_from_adjacency_matrix(g_sub_adj,weighted = T)
   w_vec <- log(E(g_sub)$weight)-min(log(E(g_sub)$weight))+0.1
-  plot(g_sub,edge.width=w_vec,edge.arrow.size = max(w_vec)/10)
+  plot(g_sub,edge.width=w_vec,edge.arrow.size = max(w_vec)/10,vertex.label.cex = 0.6)
 }
 
 ```

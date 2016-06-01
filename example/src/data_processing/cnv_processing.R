@@ -1,0 +1,75 @@
+# transform TCGA level 3 CNV data to gene and mean 
+cnv_file  = '~/Documents/workspace/phospho_network/example/RAWDATA/brca_CNV_raw.seg'
+rna_file  = '~/Documents/workspace/phospho_network/example/RAWDATA/brca_RNA_raw.txt'
+rppa_file = '~/Documents/workspace/phospho_network/example/script_files/rppa_processed_raw.csv'
+out_path  = '~/Documents/workspace/phospho_network/example/script_files'
+k = 0.2 #cutoff, if seg.mean <= k cnv would be 0
+
+library("biomaRt")
+cnv_data  <- read.table(cnv_file,as.is = T,header = T,sep = '\t')
+rna_data  <- read.delim(rna_file,row.names = 1)
+rppa_data <- read.csv(rppa_file,as.is = T,row.names = 1)
+
+rna_samples <- gsub('(\\w+-\\w+-\\w+-\\d+).+','\\1',gsub('\\.','-',colnames(rna_data)))
+cnv_samples <- unique(cnv_data$Sample)
+rppa_samples <- gsub('\\.','-',colnames(rppa_data))
+colnames(rna_data)  <- rna_samples
+colnames(rppa_data) <- rppa_samples
+
+intersect_samples <- Reduce(intersect,list(rna_samples,cnv_samples,rppa_samples))
+cnv_data_intersect_raw <- cnv_data[cnv_data$Sample %in% intersect_samples,]
+rna_data_intersect <- rna_data[,intersect_samples]
+rppa_data_intersect <- rppa_data[,intersect_samples]
+
+ensembl54=useMart("ENSEMBL_MART_ENSEMBL", dataset="hsapiens_gene_ensembl")
+
+return_gene <- function(x){
+  results=getBM(attributes = c("hgnc_symbol"),
+                filters = c("chromosomal_region","biotype"),values = list(paste(x[2:4],collapse = ':'),"protein_coding"), mart = ensembl54)
+  genes <- paste(results$hgnc_symbol,collapse = ';')
+  return(genes)
+}
+
+cnv_data_intersect <- cnv_data_intersect_raw[abs(cnv_data_intersect_raw$seg.mean) > k,]
+filterlist <- rep(NA,nrow(cnv_data_intersect))
+while(sum(is.na(filterlist)>0)){
+  list_ind <- min(which(is.na(filterlist)))
+  for(i in list_ind:nrow(cnv_data_intersect)){
+    filterlist[i] <- return_gene(cnv_data_intersect[i,])
+  }
+}
+
+cnv_mapping <- cbind.data.frame(cnv_data_intersect,filterlist, stringsAsFactors = FALSE)
+
+cnv_gene <- matrix(0,ncol = 3,nrow = 0)
+samples <- unique(cnv_mapping$Sample)
+for (i in samples){
+  m = cnv_mapping[cnv_mapping$Sample == i,]
+  new_table <- matrix(0,nrow = 0,ncol = 3)
+  for (j in 1:nrow(m)){
+    new_genes <- strsplit(m[1,]$filterlist,split = ';')[[1]]
+    if(length(new_genes) != 0){
+      new_table <- rbind(new_table,cbind.data.frame('sample' = i,'gene' = new_genes,'seg.mean' = m[1,]$seg.mean))
+    }
+  }
+  if(nrow(new_table) > 0){
+    cnv_gene <- rbind(cnv_gene,aggregate(seg.mean ~ sample + gene, FUN = "mean", data = new_table)) #mean
+  }
+}
+cnv_gene_matrix <- matrix(0,nrow = length(intersect_samples),ncol = length(unique(cnv_gene$gene)))
+colnames(cnv_gene_matrix) <- unique(cnv_gene$gene)
+rownames(cnv_gene_matrix) <- intersect_samples
+
+for (i in 1: nrow(cnv_gene)){
+  new_line <- cnv_gene[i,]
+  cnv_gene_matrix[new_line$sample,new_line$gene] <- as.numeric(new_line$seg.mean)
+}
+cnv_gene_matrix <- t(cnv_gene_matrix)
+genes_intersect <- intersect(rownames(cnv_gene_matrix),rownames(rna_data_intersect))
+rna_matrix_intersect <- rna_data_intersect[,intersect_samples]
+cnv_matrix_intersect <- cnv_gene_matrix[genes_intersect,intersect_samples]
+
+write.csv(rna_matrix_intersect,paste(out_path,'rna_processed.csv',sep = '/'))
+write.csv(cnv_matrix_intersect,paste(out_path,'cnv_processed.csv',sep = '/'))
+write.csv(rppa_data_intersect,paste(out_path,'rppa_processed.csv',sep = '/'))
+

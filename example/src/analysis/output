@@ -1,0 +1,731 @@
+Loading required package: methods
+Error in loadNamespace(j <- i[[1L]], c(lib.loc, .libPaths()), versionCheck = vI[[j]]) : 
+  there is no package called ‘magrittr’
+Error: package or namespace load failed for ‘igraph’
+Execution halted
+
+------------------------------------------------------------
+Sender: LSF System <lsfadmin@clarinet001-202.orchestra>
+Subject: Job 3275849: <Rscript plot_network.R> Exited
+
+Job <Rscript plot_network.R> was submitted from host <loge.orchestra> by user <cc400> in cluster <hms_orchestra>.
+Job was executed on host(s) <clarinet001-202.orchestra>, in queue <short>, as user <cc400> in cluster <hms_orchestra>.
+</home/cc400> was used as the home directory.
+</home/cc400/Documents/workspace/phospho_network/example/src/analysis> was used as the working directory.
+Started at Wed Jun  1 13:43:17 2016
+Results reported at Wed Jun  1 13:43:17 2016
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+Rscript plot_network.R
+------------------------------------------------------------
+
+Exited with exit code 1.
+
+Resource usage summary:
+
+    CPU time   :      0.32 sec.
+
+The output (if any) is above this job summary.
+
+Loading required package: methods
+
+Attaching package: ‘igraph’
+
+The following objects are masked from ‘package:stats’:
+
+    decompose, spectrum
+
+The following object is masked from ‘package:base’:
+
+    union
+
+[1] "ACACA;ACACB_79"
+[1] "AKT1;AKT2;AKT3_308"
+[1] "AKT1;AKT2;AKT3_473"
+[1] "AKT1S1_246"
+[1] "ARAF_299"
+[1] "CDKN1B_157"
+[1] "CDKN1B_198"
+[1] "CHEK1_345"
+[1] "CHEK2_68"
+[1] "EGFR_1068"
+[1] "EGFR_1173"
+[1] "EGFR_992"
+[1] "EIF4EBP1_170"
+[1] "EIF4EBP1_37"
+[1] "EIF4EBP1_65"
+[1] "ERBB2_1248"
+[1] "ERBB3_1298"
+[1] "ESR1_118"
+[1] "FOXO3_318;321"
+[1] "GSK3A;GSK3B_21;9"
+[1] "JUN_73"
+[1] "MAP2K1_217;221"
+[1] "MAPK14_180;182"
+[1] "MAPK1;MAPK3_202;204"
+[1] "MAPK8_183;185"
+[1] "MET_1235"
+[1] "PDK1_241"
+[1] "PRKAA1_172"
+[1] "PRKCA_657"
+[1] "PRKCD_664"
+[1] "RAF1_338"
+[1] "RB1_807;811"
+[1] "RPS6KA1_359;363"
+[1] "RPS6KB1_389"
+[1] "SHC1_317"
+[1] "SRC_416"
+[1] "SRC_527"
+[1] "STAT3_705"
+[1] "ACACA;ACACB_79"
+[1] "AKT1;AKT2;AKT3_308"
+[1] "AKT1;AKT2;AKT3_473"
+[1] "AKT1S1_246"
+[1] "ARAF_299"
+[1] "CDKN1B_157"
+[1] "CDKN1B_198"
+[1] "CHEK1_345"
+[1] "CHEK2_68"
+[1] "EGFR_1068"
+[1] "EGFR_1173"
+[1] "EGFR_992"
+[1] "EIF4EBP1_170"
+[1] "EIF4EBP1_37"
+[1] "EIF4EBP1_65"
+[1] "ERBB2_1248"
+[1] "ERBB3_1298"
+[1] "ESR1_118"
+[1] "FOXO3_318;321"
+[1] "GSK3A;GSK3B_21;9"
+[1] "JUN_73"
+[1] "MAP2K1_217;221"
+[1] "MAPK14_180;182"
+[1] "MAPK1;MAPK3_202;204"
+[1] "MAPK8_183;185"
+[1] "MET_1235"
+[1] "PDK1_241"
+[1] "PRKAA1_172"
+[1] "PRKCA_657"
+[1] "PRKCD_664"
+[1] "RAF1_338"
+[1] "RB1_807;811"
+[1] "RPS6KA1_359;363"
+[1] "RPS6KB1_389"
+[1] "SHC1_317"
+[1] "SRC_416"
+[1] "SRC_527"
+[1] "STAT3_705"
+[1] "ACACA;ACACB_79"
+[1] "AKT1;AKT2;AKT3_308"
+[1] "AKT1;AKT2;AKT3_473"
+[1] "AKT1S1_246"
+[1] "ARAF_299"
+[1] "CDKN1B_157"
+[1] "CDKN1B_198"
+[1] "CHEK1_345"
+[1] "CHEK2_68"
+[1] "EGFR_1068"
+[1] "EGFR_1173"
+[1] "EGFR_992"
+[1] "EIF4EBP1_170"
+[1] "EIF4EBP1_37"
+[1] "EIF4EBP1_65"
+[1] "ERBB2_1248"
+[1] "ERBB3_1298"
+[1] "ESR1_118"
+[1] "FOXO3_318;321"
+[1] "GSK3A;GSK3B_21;9"
+[1] "JUN_73"
+[1] "MAP2K1_217;221"
+[1] "MAPK14_180;182"
+[1] "MAPK1;MAPK3_202;204"
+[1] "MAPK8_183;185"
+[1] "MET_1235"
+[1] "PDK1_241"
+[1] "PRKAA1_172"
+[1] "PRKCA_657"
+[1] "PRKCD_664"
+[1] "RAF1_338"
+[1] "RB1_807;811"
+[1] "RPS6KA1_359;363"
+[1] "RPS6KB1_389"
+[1] "SHC1_317"
+[1] "SRC_416"
+[1] "SRC_527"
+[1] "STAT3_705"
+[1] "ACACA;ACACB_79"
+[1] "AKT1;AKT2;AKT3_308"
+[1] "AKT1;AKT2;AKT3_473"
+[1] "AKT1S1_246"
+[1] "ARAF_299"
+[1] "CDKN1B_157"
+[1] "CDKN1B_198"
+[1] "CHEK1_345"
+[1] "CHEK2_68"
+[1] "EGFR_1068"
+[1] "EGFR_1173"
+[1] "EGFR_992"
+[1] "EIF4EBP1_170"
+[1] "EIF4EBP1_37"
+[1] "EIF4EBP1_65"
+[1] "ERBB2_1248"
+[1] "ERBB3_1298"
+[1] "ESR1_118"
+[1] "FOXO3_318;321"
+[1] "GSK3A;GSK3B_21;9"
+[1] "JUN_73"
+[1] "MAP2K1_217;221"
+[1] "MAPK14_180;182"
+[1] "MAPK1;MAPK3_202;204"
+[1] "MAPK8_183;185"
+[1] "MET_1235"
+[1] "PDK1_241"
+[1] "PRKAA1_172"
+[1] "PRKCA_657"
+[1] "PRKCD_664"
+[1] "RAF1_338"
+[1] "RB1_807;811"
+[1] "RPS6KA1_359;363"
+[1] "RPS6KB1_389"
+[1] "SHC1_317"
+[1] "SRC_416"
+[1] "SRC_527"
+[1] "STAT3_705"
+[1] "ACACA;ACACB_79"
+[1] "AKT1;AKT2;AKT3_308"
+[1] "AKT1;AKT2;AKT3_473"
+[1] "AKT1S1_246"
+[1] "ARAF_299"
+[1] "CDKN1B_157"
+[1] "CDKN1B_198"
+[1] "CHEK1_345"
+[1] "CHEK2_68"
+[1] "EGFR_1068"
+[1] "EGFR_1173"
+[1] "EGFR_992"
+[1] "EIF4EBP1_170"
+[1] "EIF4EBP1_37"
+[1] "EIF4EBP1_65"
+[1] "ERBB2_1248"
+[1] "ERBB3_1298"
+[1] "ESR1_118"
+[1] "FOXO3_318;321"
+[1] "GSK3A;GSK3B_21;9"
+[1] "JUN_73"
+[1] "MAP2K1_217;221"
+[1] "MAPK14_180;182"
+[1] "MAPK1;MAPK3_202;204"
+[1] "MAPK8_183;185"
+[1] "MET_1235"
+[1] "PDK1_241"
+[1] "PRKAA1_172"
+[1] "PRKCA_657"
+[1] "PRKCD_664"
+[1] "RAF1_338"
+[1] "RB1_807;811"
+[1] "RPS6KA1_359;363"
+[1] "RPS6KB1_389"
+[1] "SHC1_317"
+[1] "SRC_416"
+[1] "SRC_527"
+[1] "STAT3_705"
+[1] "ACACA;ACACB_79"
+[1] "AKT1;AKT2;AKT3_308"
+[1] "AKT1;AKT2;AKT3_473"
+[1] "AKT1S1_246"
+[1] "ARAF_299"
+[1] "CDKN1B_157"
+[1] "CDKN1B_198"
+[1] "CHEK1_345"
+[1] "CHEK2_68"
+[1] "EGFR_1068"
+[1] "EGFR_1173"
+[1] "EGFR_992"
+[1] "EIF4EBP1_170"
+[1] "EIF4EBP1_37"
+[1] "EIF4EBP1_65"
+[1] "ERBB2_1248"
+[1] "ERBB3_1298"
+[1] "ESR1_118"
+[1] "FOXO3_318;321"
+[1] "GSK3A;GSK3B_21;9"
+[1] "JUN_73"
+[1] "MAP2K1_217;221"
+[1] "MAPK14_180;182"
+[1] "MAPK1;MAPK3_202;204"
+[1] "MAPK8_183;185"
+[1] "MET_1235"
+[1] "PDK1_241"
+[1] "PRKAA1_172"
+[1] "PRKCA_657"
+[1] "PRKCD_664"
+[1] "RAF1_338"
+[1] "RB1_807;811"
+[1] "RPS6KA1_359;363"
+[1] "RPS6KB1_389"
+[1] "SHC1_317"
+[1] "SRC_416"
+[1] "SRC_527"
+[1] "STAT3_705"
+[1] "ACACA;ACACB_79"
+[1] "AKT1;AKT2;AKT3_308"
+[1] "AKT1;AKT2;AKT3_473"
+[1] "AKT1S1_246"
+[1] "ARAF_299"
+[1] "CDKN1B_198"
+[1] "CHEK2_68"
+[1] "EGFR_1068"
+[1] "EGFR_1173"
+[1] "EIF4EBP1_170"
+[1] "EIF4EBP1_37"
+[1] "EIF4EBP1_65"
+[1] "ERBB2_1248"
+[1] "ERBB3_1298"
+[1] "ESR1_118"
+[1] "FOXO3_318;321"
+[1] "JUN_73"
+[1] "MAP2K1_217;221"
+[1] "MAPK14_180;182"
+[1] "MAPK1;MAPK3_202;204"
+[1] "MET_1235"
+[1] "PDK1_241"
+[1] "PRKAA1_172"
+[1] "PRKCA_657"
+[1] "RB1_807;811"
+[1] "RPS6KA1_359;363"
+[1] "RPS6KB1_389"
+[1] "SRC_416"
+[1] "SRC_527"
+[1] "STAT3_705"
+
+------------------------------------------------------------
+Sender: LSF System <lsfadmin@clarinet001-051.orchestra>
+Subject: Job 3276316: <Rscript plot_network.R> Done
+
+Job <Rscript plot_network.R> was submitted from host <loge.orchestra> by user <cc400> in cluster <hms_orchestra>.
+Job was executed on host(s) <clarinet001-051.orchestra>, in queue <short>, as user <cc400> in cluster <hms_orchestra>.
+</home/cc400> was used as the home directory.
+</home/cc400/Documents/workspace/phospho_network/example/src/analysis> was used as the working directory.
+Started at Wed Jun  1 13:53:56 2016
+Results reported at Wed Jun  1 14:08:25 2016
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+Rscript plot_network.R
+------------------------------------------------------------
+
+Successfully completed.
+
+Resource usage summary:
+
+    CPU time   :    863.59 sec.
+    Max Memory :      6449 MB
+    Max Swap   :      6734 MB
+
+    Max Processes  :         3
+    Max Threads    :         4
+
+The output (if any) is above this job summary.
+
+Loading required package: methods
+
+Attaching package: ‘igraph’
+
+The following objects are masked from ‘package:stats’:
+
+    decompose, spectrum
+
+The following object is masked from ‘package:base’:
+
+    union
+
+[1] "AKT1;AKT2;AKT3_308"
+[1] "AKT1;AKT2;AKT3_473"
+[1] "ARAF_299"
+[1] "CHEK1_345"
+[1] "CHEK2_68"
+[1] "EGFR_1068"
+[1] "EGFR_1173"
+[1] "EGFR_992"
+[1] "ERBB2_1248"
+[1] "GSK3A;GSK3B_21;9"
+[1] "MAP2K1_217;221"
+[1] "MAPK14_180;182"
+[1] "MAPK1;MAPK3_202;204"
+[1] "MAPK8_183;185"
+[1] "MET_1235"
+[1] "PDK1_241"
+[1] "PRKAA1_172"
+[1] "PRKCA_657"
+[1] "PRKCD_664"
+[1] "RAF1_338"
+[1] "RPS6KA1_359;363"
+[1] "RPS6KB1_389"
+[1] "SRC_416"
+[1] "SRC_527"
+Warning message:
+In dir.create(paste(output_path, config, sep = "")) :
+  '/home/cc400/Documents/workspace/phospho_network/example/script_files/network_plot/enL_heat_results' already exists
+
+------------------------------------------------------------
+Sender: LSF System <lsfadmin@clarinet001-206.orchestra>
+Subject: Job 3276946: <Rscript plot_network.R> Done
+
+Job <Rscript plot_network.R> was submitted from host <loge.orchestra> by user <cc400> in cluster <hms_orchestra>.
+Job was executed on host(s) <clarinet001-206.orchestra>, in queue <short>, as user <cc400> in cluster <hms_orchestra>.
+</home/cc400> was used as the home directory.
+</home/cc400/Documents/workspace/phospho_network/example/src/analysis> was used as the working directory.
+Started at Wed Jun  1 14:26:45 2016
+Results reported at Wed Jun  1 14:26:55 2016
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+Rscript plot_network.R
+------------------------------------------------------------
+
+Successfully completed.
+
+Resource usage summary:
+
+    CPU time   :      9.03 sec.
+    Max Memory :       142 MB
+    Max Swap   :       482 MB
+
+    Max Processes  :         3
+    Max Threads    :         4
+
+The output (if any) is above this job summary.
+
+Loading required package: methods
+
+Attaching package: ‘igraph’
+
+The following objects are masked from ‘package:stats’:
+
+    decompose, spectrum
+
+The following object is masked from ‘package:base’:
+
+    union
+
+[1] "AKT1;AKT2;AKT3_308"
+[1] "AKT1;AKT2;AKT3_473"
+[1] "ARAF_299"
+[1] "CHEK1_345"
+[1] "CHEK2_68"
+[1] "EGFR_1068"
+[1] "EGFR_1173"
+[1] "EGFR_992"
+[1] "ERBB2_1248"
+[1] "GSK3A;GSK3B_21;9"
+[1] "MAP2K1_217;221"
+[1] "MAPK14_180;182"
+[1] "MAPK1;MAPK3_202;204"
+[1] "MAPK8_183;185"
+[1] "MET_1235"
+[1] "PDK1_241"
+[1] "PRKAA1_172"
+[1] "PRKCA_657"
+[1] "PRKCD_664"
+[1] "RAF1_338"
+[1] "RPS6KA1_359;363"
+[1] "RPS6KB1_389"
+[1] "SRC_416"
+[1] "SRC_527"
+Warning message:
+In dir.create(paste(output_path, config, sep = "")) :
+  '/home/cc400/Documents/workspace/phospho_network/example/script_files/network_plot/enL_heat_results' already exists
+
+------------------------------------------------------------
+Sender: LSF System <lsfadmin@clarinet001-052.orchestra>
+Subject: Job 3276956: <Rscript plot_network.R> Done
+
+Job <Rscript plot_network.R> was submitted from host <loge.orchestra> by user <cc400> in cluster <hms_orchestra>.
+Job was executed on host(s) <clarinet001-052.orchestra>, in queue <short>, as user <cc400> in cluster <hms_orchestra>.
+</home/cc400> was used as the home directory.
+</home/cc400/Documents/workspace/phospho_network/example/src/analysis> was used as the working directory.
+Started at Wed Jun  1 14:36:07 2016
+Results reported at Wed Jun  1 14:36:19 2016
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+Rscript plot_network.R
+------------------------------------------------------------
+
+Successfully completed.
+
+Resource usage summary:
+
+    CPU time   :     10.36 sec.
+    Max Memory :        38 MB
+    Max Swap   :       324 MB
+
+    Max Processes  :         3
+    Max Threads    :         4
+
+The output (if any) is above this job summary.
+
+Loading required package: methods
+
+Attaching package: ‘igraph’
+
+The following objects are masked from ‘package:stats’:
+
+    decompose, spectrum
+
+The following object is masked from ‘package:base’:
+
+    union
+
+[1] "ACACA;ACACB_79"
+[1] "AKT1;AKT2;AKT3_308"
+[1] "AKT1;AKT2;AKT3_473"
+[1] "AKT1S1_246"
+[1] "ARAF_299"
+[1] "CDKN1B_157"
+[1] "CDKN1B_198"
+[1] "CHEK1_345"
+[1] "CHEK2_68"
+[1] "EGFR_1068"
+[1] "EGFR_1173"
+[1] "EGFR_992"
+[1] "EIF4EBP1_170"
+[1] "EIF4EBP1_37"
+[1] "EIF4EBP1_65"
+[1] "ERBB2_1248"
+[1] "ERBB3_1298"
+[1] "ESR1_118"
+[1] "FOXO3_318;321"
+[1] "GSK3A;GSK3B_21;9"
+[1] "JUN_73"
+[1] "MAP2K1_217;221"
+[1] "MAPK14_180;182"
+[1] "MAPK1;MAPK3_202;204"
+[1] "MAPK8_183;185"
+[1] "MET_1235"
+[1] "PDK1_241"
+[1] "PRKAA1_172"
+[1] "PRKCA_657"
+[1] "PRKCD_664"
+[1] "RAF1_338"
+[1] "RB1_807;811"
+[1] "RPS6KA1_359;363"
+[1] "RPS6KB1_389"
+[1] "SHC1_317"
+[1] "SRC_416"
+[1] "SRC_527"
+[1] "STAT3_705"
+Warning message:
+In dir.create(paste(output_path, config, sep = "")) :
+  '/home/cc400/Documents/workspace/phospho_network/example/script_files/network_plot/enL_heat_results' already exists
+
+------------------------------------------------------------
+Sender: LSF System <lsfadmin@ottavino000-187.orchestra>
+Subject: Job 3276959: <Rscript plot_network.R> Done
+
+Job <Rscript plot_network.R> was submitted from host <loge.orchestra> by user <cc400> in cluster <hms_orchestra>.
+Job was executed on host(s) <ottavino000-187.orchestra>, in queue <short>, as user <cc400> in cluster <hms_orchestra>.
+</home/cc400> was used as the home directory.
+</home/cc400/Documents/workspace/phospho_network/example/src/analysis> was used as the working directory.
+Started at Wed Jun  1 14:38:30 2016
+Results reported at Wed Jun  1 14:41:01 2016
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+Rscript plot_network.R
+------------------------------------------------------------
+
+Successfully completed.
+
+Resource usage summary:
+
+    CPU time   :    142.37 sec.
+    Max Memory :      5669 MB
+    Max Swap   :      6081 MB
+
+    Max Processes  :         3
+    Max Threads    :         4
+
+The output (if any) is above this job summary.
+
+Loading required package: methods
+
+Attaching package: ‘igraph’
+
+The following objects are masked from ‘package:stats’:
+
+    decompose, spectrum
+
+The following object is masked from ‘package:base’:
+
+    union
+
+[1] "ACACA;ACACB_79"
+[1] "AKT1;AKT2;AKT3_308"
+[1] "AKT1;AKT2;AKT3_473"
+[1] "AKT1S1_246"
+[1] "ARAF_299"
+[1] "CDKN1B_157"
+[1] "CDKN1B_198"
+[1] "CHEK1_345"
+[1] "CHEK2_68"
+[1] "EGFR_1068"
+[1] "EGFR_1173"
+[1] "EGFR_992"
+[1] "EIF4EBP1_170"
+[1] "EIF4EBP1_37"
+[1] "EIF4EBP1_65"
+[1] "ERBB2_1248"
+[1] "ERBB3_1298"
+[1] "ESR1_118"
+[1] "FOXO3_318;321"
+[1] "GSK3A;GSK3B_21;9"
+[1] "JUN_73"
+[1] "MAP2K1_217;221"
+[1] "MAPK14_180;182"
+[1] "MAPK1;MAPK3_202;204"
+[1] "MAPK8_183;185"
+[1] "MET_1235"
+[1] "PDK1_241"
+[1] "PRKAA1_172"
+[1] "PRKCA_657"
+[1] "PRKCD_664"
+[1] "RAF1_338"
+[1] "RB1_807;811"
+[1] "RPS6KA1_359;363"
+[1] "RPS6KB1_389"
+[1] "SHC1_317"
+[1] "SRC_416"
+[1] "SRC_527"
+[1] "STAT3_705"
+Warning message:
+In dir.create(paste(output_path, config, sep = "")) :
+  '/home/cc400/Documents/workspace/phospho_network/example/script_files/network_plot/enL_heat_results' already exists
+
+------------------------------------------------------------
+Sender: LSF System <lsfadmin@clarinet001-077.orchestra>
+Subject: Job 3277030: <Rscript plot_network.R> Done
+
+Job <Rscript plot_network.R> was submitted from host <loge.orchestra> by user <cc400> in cluster <hms_orchestra>.
+Job was executed on host(s) <clarinet001-077.orchestra>, in queue <short>, as user <cc400> in cluster <hms_orchestra>.
+</home/cc400> was used as the home directory.
+</home/cc400/Documents/workspace/phospho_network/example/src/analysis> was used as the working directory.
+Started at Wed Jun  1 14:43:19 2016
+Results reported at Wed Jun  1 14:45:26 2016
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+Rscript plot_network.R
+------------------------------------------------------------
+
+Successfully completed.
+
+Resource usage summary:
+
+    CPU time   :    124.24 sec.
+    Max Memory :      5257 MB
+    Max Swap   :      6734 MB
+
+    Max Processes  :         3
+    Max Threads    :         4
+
+The output (if any) is above this job summary.
+
+Loading required package: methods
+
+Attaching package: ‘igraph’
+
+The following objects are masked from ‘package:stats’:
+
+    decompose, spectrum
+
+The following object is masked from ‘package:base’:
+
+    union
+
+[1] "ACACA;ACACB_79"
+[1] "AKT1;AKT2;AKT3_308"
+[1] "AKT1;AKT2;AKT3_473"
+[1] "AKT1S1_246"
+[1] "ARAF_299"
+[1] "CDKN1B_157"
+[1] "CDKN1B_198"
+[1] "CHEK1_345"
+[1] "CHEK2_68"
+[1] "EGFR_1068"
+[1] "EGFR_1173"
+[1] "EGFR_992"
+[1] "EIF4EBP1_170"
+[1] "EIF4EBP1_37"
+[1] "EIF4EBP1_65"
+[1] "ERBB2_1248"
+[1] "ERBB3_1298"
+[1] "ESR1_118"
+[1] "FOXO3_318;321"
+[1] "GSK3A;GSK3B_21;9"
+[1] "JUN_73"
+[1] "MAP2K1_217;221"
+[1] "MAPK14_180;182"
+[1] "MAPK1;MAPK3_202;204"
+[1] "MAPK8_183;185"
+[1] "MET_1235"
+[1] "PDK1_241"
+[1] "PRKAA1_172"
+[1] "PRKCA_657"
+[1] "PRKCD_664"
+[1] "RAF1_338"
+[1] "RB1_807;811"
+[1] "RPS6KA1_359;363"
+[1] "RPS6KB1_389"
+[1] "SHC1_317"
+[1] "SRC_416"
+[1] "SRC_527"
+[1] "STAT3_705"
+Warning message:
+In dir.create(paste(output_path, config, sep = "")) :
+  '/home/cc400/Documents/workspace/phospho_network/example/script_files/network_plot/enL_heat_results' already exists
+
+------------------------------------------------------------
+Sender: LSF System <lsfadmin@clarinet002-019.orchestra>
+Subject: Job 3278112: <Rscript plot_network.R> Done
+
+Job <Rscript plot_network.R> was submitted from host <loge.orchestra> by user <cc400> in cluster <hms_orchestra>.
+Job was executed on host(s) <clarinet002-019.orchestra>, in queue <short>, as user <cc400> in cluster <hms_orchestra>.
+</home/cc400> was used as the home directory.
+</home/cc400/Documents/workspace/phospho_network/example/src/analysis> was used as the working directory.
+Started at Wed Jun  1 14:52:02 2016
+Results reported at Wed Jun  1 14:54:43 2016
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+Rscript plot_network.R
+------------------------------------------------------------
+
+Successfully completed.
+
+Resource usage summary:
+
+    CPU time   :    156.47 sec.
+    Max Memory :      6449 MB
+    Max Swap   :      6734 MB
+
+    Max Processes  :         3
+    Max Threads    :         4
+
+The output (if any) is above this job summary.
+

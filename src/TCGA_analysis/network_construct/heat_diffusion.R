@@ -12,7 +12,7 @@
 
 library(methods)
 library(igraph)
-library(MASS)
+#library(MASS)
 
 # Set inputs:
 rna_filename          = '~/Documents/workspace/phospho_network/RAWDATA/tcga_brac/BRCA.exp.547.med.txt'
@@ -25,7 +25,7 @@ rppa_mapping_file1    = '~/Documents/workspace/phospho_network/RAWDATA/tcga_brac
 rppa_mapping_file2    = '~/Documents/workspace/phospho_network/RAWDATA/TCPA/TCPA_ANTIBODY_MAPPING.txt'
 
 # Set parameters
-heat_outfile          = '~/Documents/workspace/phospho_network/script_files/TCGA_analysis/heat_influence.csv'
+heat_outfile          = '~/Documents/workspace/phospho_network/script_files/TCGA_analysis/heat_influence_solve.csv'
 network_outfile       = '~/Documents/workspace/phospho_network/script_files/TCGA_analysis/network.csv'
 
 
@@ -52,7 +52,7 @@ add_edges <- function(gene_interactions,site_interactions){
 heat_influence <- function(adj,b=0.6){
   w <- t(t(adj)/colSums(adj))
   w[adj==0] <- 0
-  influence_matrix <- ginv(diag(nrow(adj))-(1-b)*w)*b
+  influence_matrix <- solve(diag(nrow(adj))-(1-b)*w)*b
   colnames(influence_matrix) <- colnames(adj)
   rownames(influence_matrix) <- rownames(adj)
   return(t(influence_matrix))
