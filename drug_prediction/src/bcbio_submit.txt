@@ -1,0 +1,5 @@
+bcbio_nextgen.py -w template ./sample.yaml CDK46_response_targeted_201609.csv ./*
+
+
+
+bsub -q long -W 100:0 -R "rusage[mem=10000]" -o 1.out bcbio_nextgen.py ../config/CDK46_response_201608.yaml -n 32 -t ipython -s lsf -q parallel -r mincores=2 -r minconcores=2 '-rW=72:00' --retries 3 --timeout 380

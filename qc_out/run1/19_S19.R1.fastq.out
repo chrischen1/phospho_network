@@ -1,0 +1,53 @@
+Started analysis of 19_S19.R1.fastq
+Approx 5% complete for 19_S19.R1.fastq
+Approx 10% complete for 19_S19.R1.fastq
+Approx 15% complete for 19_S19.R1.fastq
+Approx 20% complete for 19_S19.R1.fastq
+Approx 25% complete for 19_S19.R1.fastq
+Approx 30% complete for 19_S19.R1.fastq
+Approx 35% complete for 19_S19.R1.fastq
+Approx 40% complete for 19_S19.R1.fastq
+Approx 45% complete for 19_S19.R1.fastq
+Approx 50% complete for 19_S19.R1.fastq
+Approx 55% complete for 19_S19.R1.fastq
+Approx 60% complete for 19_S19.R1.fastq
+Approx 65% complete for 19_S19.R1.fastq
+Approx 70% complete for 19_S19.R1.fastq
+Approx 75% complete for 19_S19.R1.fastq
+Approx 80% complete for 19_S19.R1.fastq
+Approx 85% complete for 19_S19.R1.fastq
+Approx 90% complete for 19_S19.R1.fastq
+Approx 95% complete for 19_S19.R1.fastq
+Analysis complete for 19_S19.R1.fastq
+
+------------------------------------------------------------
+Sender: LSF System <lsfadmin@clarinet000-210.orchestra>
+Subject: Job 4907421: <fastqc -o ./qc_out/run1/ ./run1/19_S19.R1.fastq> Done
+
+Job <fastqc -o ./qc_out/run1/ ./run1/19_S19.R1.fastq> was submitted from host <mezzanine.orchestra> by user <cc400> in cluster <hms_orchestra>.
+Job was executed on host(s) <clarinet000-210.orchestra>, in queue <short>, as user <cc400> in cluster <hms_orchestra>.
+</home/cc400> was used as the home directory.
+</n/scratch2/cc400> was used as the working directory.
+Started at Tue Jun 28 11:18:43 2016
+Results reported at Tue Jun 28 11:21:25 2016
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+fastqc -o ./qc_out/run1/ ./run1/19_S19.R1.fastq
+------------------------------------------------------------
+
+Successfully completed.
+
+Resource usage summary:
+
+    CPU time   :    161.42 sec.
+    Max Memory :       206 MB
+    Max Swap   :      2727 MB
+
+    Max Processes  :         3
+    Max Threads    :        18
+
+The output (if any) is above this job summary.
+

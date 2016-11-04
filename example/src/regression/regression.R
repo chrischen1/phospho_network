@@ -119,8 +119,8 @@ sample_prepare <- function(nsample,fold){
   test_list       <- list()
   train_list      <- list()
   sample_list     <- 1:nsample
-  sample_list_tmp <- sample(sample_list,size = floor(length(sample_list)/outerfold)*outerfold)
-  test_size <- floor(nsample/outerfold)
+  sample_list_tmp <- sample(sample_list,size = floor(length(sample_list)/fold)*fold)
+  test_size <- floor(nsample/fold)
   for (i in 1:fold){
     test_list[[i]] <- sample_list_tmp[1:test_size]
     sample_list_tmp <- sample_list_tmp[-(1:test_size)]
@@ -135,7 +135,7 @@ inner_rf <- function(model_data,train_set,innerfold){
   # inner loop
   cv_model <- rfcv(datax,datay,cv.fold = innerfold)
   nvar = cv_model$n.var[which.min(cv_model$error.cv)]
-  best_model <- randomForest(x = datax,y = datay,mtry = nvar,importance = T)
+  best_model <- randomForest(x = datax,y = datay,mtry = nvar,importance = T,ntree = 2000)
 }
 
 inner_en <- function(model_data,train_set,innerfold,alphas = alphas){
@@ -363,7 +363,17 @@ if(length(test_node_valid)>0){
                            paste(rownames(cnv_data),'CNV',sep = '_'),mis_mut$missense_names)
       predictors <- rep(1,length(predictors_name))
       names(predictors) <- predictors_name
-  }else {
+  }else if(pred_choose == 'dist'){
+      g <- graph_from_adjacency_matrix(network)
+      predictors_dist <- apply(distances(g,v = test_node_valid,mode = 'in'),2,min)
+      predictors_name <- names(predictors_dist)[predictors_dist <= k & !(names(predictors_dist) %in% test_node_valid)]
+      predictors <- rep(1,length(predictors_name))
+      names(predictors) <- predictors_name
+  }else if(pred_choose == 'random'){
+      predictor_names <- sample(rownames(network),k)
+      predictors <- rep(1,k)
+      names(predictors) <- predictor_names
+  }else{
     predictors <- predictor_construct(test_node_valid,pred_choose = pred_choose,network = network)
   }
   model_data <- data_prepare(test_name = test_name,mdata = mdata,mut_data = mut_data,cnv_data = cnv_data,rna_data = rna_data,mis_mut = mis_mut,

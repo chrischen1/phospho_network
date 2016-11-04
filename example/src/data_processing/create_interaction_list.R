@@ -61,7 +61,7 @@ bg_parser <- function(bg,include_auto){
 }
 
 # parse from pathway commons
-pw_parser <- function(pw,include_auto){
+pw_parser <- function(pw,include_auto = F){
   pw_data <- read.table(pw,fill = T,as.is = T,header = F,sep = '\t')
   pw_data_table <- pw_data[pw_data$V2 %in% PC_interactions,]
   pw_data_table_unique <- unique(pw_data_table)

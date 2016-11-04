@@ -1,0 +1,2 @@
+bsub -q short -W 6:00 java -jar /groups/sorger/cchris/picard-tools-2.5.0/picard.jar CreateSequenceDictionary R=/groups/sorger/cchris/external_data/Homo_sapiens.GRCh38.dna.primary_assembly.fa O=/groups/sorger/cchris/external_data/Homo_sapiens.GRCh38.dna.primary_assembly.dict
+bsub -q short -W 2:00 samtools faidx /groups/sorger/cchris/external_data/Homo_sapiens.GRCh38.dna.primary_assembly.fa

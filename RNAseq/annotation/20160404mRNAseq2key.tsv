@@ -1,0 +1,22 @@
+Run 2	Sample Name	"i7 Index
+First index read"	Description
+1	20 	CGATGT(A)  	HCC 1143 
+2	21 	ACTTGA(A)  	HCC 1395 
+3	22 	AGTTCC(G)  	HCC 1419 
+4	23 	GTTTCG(G)  	HCC 1500 
+5	24 	ACAGTG(A)  	HCC 1937 
+6	25 	GGCTAC(A)  	HCC 1954 
+7	26 	GTCCGC(A)  	CAL 120 
+8	27 	ACTGAT(A)  	CAL 51 
+9	28 	TTAGGC(A)  	CAL 85 
+10	29 	GATCAG(A)  	SUM 149 
+11	30 	ATGTCA(G)  	SUM 159 
+12	31 	CGTACG(T)  	SUM 1315 
+13	32 	GCCAAT(A)  	T47D 
+14	33 	CTTGTA(A)  	CAMA 1 
+15	34 	GTGAAA(C)  	hME 1 
+16	35 	ATTCCT(T)  	HCC1428 
+17	2 bio replic. 	ATCACG(A)  	MCF10A 
+18	8 tech replic. 	CAGATC(A)  	PDX1258 
+19	9 tech replic. 	AGTCAA(C)  	PDX1328 
+20	19 tech replic. 	GTGGCC(T)  	PDX HC1002 

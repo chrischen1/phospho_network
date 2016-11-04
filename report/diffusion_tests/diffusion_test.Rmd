@@ -26,7 +26,7 @@ heat_influence <- function(adj,b=0.6){
 heat_difussion_analysis <- function(adj,influence_matrix,y_ind){
   net_im=graph.adjacency(t(influence_matrix),mode="directed",weighted=TRUE,diag=F) #"heat" should flow from downstream of the pathway to upstream
   g <- graph_from_adjacency_matrix(adj)
-  plot(g,vertex.label.cex = 0.5,edge.arrow.size=0.6)
+  plot(g,vertex.label.cex = 1,edge.arrow.size=0.2,vertex.size = 6.3)
   # plot influence matrix
   E <- t(apply(get.edgelist(net_im),1,sort))
   E(net_im)$curved <- 0
@@ -43,7 +43,7 @@ heat_difussion_analysis <- function(adj,influence_matrix,y_ind){
   heat_diffusion <- influence_matrix %*% heat_matrix
   net_hd=graph.adjacency(t(heat_diffusion),mode="directed",weighted=TRUE,diag=F)
   plot(net_hd,edge.width=E(net_hd)$weight*7/max(E(net_hd)$weight),edge.label=round(E(net_hd)$weight,3),vertex.label.cex = 0.7)
-  # print(heat_diffusion)
+  print(heat_diffusion)
   plot_heat_flow(network_adj = adj,hi_matrix = influence_matrix,predictors = heat_diffusion[heat_diffusion[,heat_ind]>0.01*max(heat_diffusion[,heat_ind]),heat_ind])
 }
 
